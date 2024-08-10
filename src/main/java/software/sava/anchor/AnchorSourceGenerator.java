@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import static java.nio.file.StandardOpenOption.*;
 
 public record AnchorSourceGenerator(Path sourceDirectory,
-                                    String moduleName,
                                     String packageName,
                                     int tabLength,
                                     AnchorIDL idl) implements Runnable {
