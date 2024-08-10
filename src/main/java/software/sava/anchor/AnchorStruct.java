@@ -19,49 +19,6 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
 
   private static final String LENGTH_ADD_ALIGN_TAB = " ".repeat("retur".length());
 
-  @Override
-  public AnchorType type() {
-    return AnchorType.struct;
-  }
-
-  @Override
-  public int numElements() {
-    return fields.size();
-  }
-
-  @Override
-  public boolean isFixedLength(final Map<String, AnchorNamedType> definedTypes) {
-    return fields.stream().anyMatch(field -> !field.type().isFixedLength(definedTypes));
-  }
-
-  @Override
-  public int serializedLength(final Map<String, AnchorNamedType> definedTypes) {
-    int serializedLength = AnchorUtil.DISCRIMINATOR_LENGTH;
-    int len;
-    for (final var field : fields) {
-      len = field.type().serializedLength(definedTypes);
-      if (len <= 0) {
-        throw throwInvalidDataType();
-      } else {
-        serializedLength += len;
-      }
-    }
-    return serializedLength;
-  }
-
-  @Override
-  public int fixedSerializedLength(final Map<String, AnchorNamedType> definedTypes) {
-    int serializedLength = AnchorUtil.DISCRIMINATOR_LENGTH;
-    for (final var field : fields) {
-      if (isFixedLength(definedTypes)) {
-        serializedLength += field.type().serializedLength(definedTypes);
-      } else {
-        return serializedLength;
-      }
-    }
-    return serializedLength;
-  }
-
   static AnchorStruct parseStruct(final JsonIterator ji) {
     return new AnchorStruct(parseList(ji));
   }
@@ -382,6 +339,48 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
     return generateRecord(genSrcContext, context, fields, "public", "Borsh", -1, isAccount);
   }
 
+  @Override
+  public AnchorType type() {
+    return AnchorType.struct;
+  }
+
+  @Override
+  public int numElements() {
+    return fields.size();
+  }
+
+  @Override
+  public boolean isFixedLength(final Map<String, AnchorNamedType> definedTypes) {
+    return fields.stream().anyMatch(field -> !field.type().isFixedLength(definedTypes));
+  }
+
+  @Override
+  public int serializedLength(final Map<String, AnchorNamedType> definedTypes) {
+    int serializedLength = AnchorUtil.DISCRIMINATOR_LENGTH;
+    int len;
+    for (final var field : fields) {
+      len = field.type().serializedLength(definedTypes);
+      if (len <= 0) {
+        throw throwInvalidDataType();
+      } else {
+        serializedLength += len;
+      }
+    }
+    return serializedLength;
+  }
+
+  @Override
+  public int fixedSerializedLength(final Map<String, AnchorNamedType> definedTypes) {
+    int serializedLength = AnchorUtil.DISCRIMINATOR_LENGTH;
+    for (final var field : fields) {
+      if (isFixedLength(definedTypes)) {
+        serializedLength += field.type().serializedLength(definedTypes);
+      } else {
+        return serializedLength;
+      }
+    }
+    return serializedLength;
+  }
 
   public String generateSource(final GenSrcContext genSrcContext,
                                final String packageName,

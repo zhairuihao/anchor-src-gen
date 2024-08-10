@@ -37,46 +37,6 @@ public enum AnchorType {
   u128(BigInteger.class, Long.BYTES << 1),
   vec;
 
-  private final Class<?> javaType;
-  private final Class<?> optionalJavaType;
-  private final int dataLength;
-  private final AnchorPrimitive primitiveType;
-
-  AnchorType(final Class<?> javaType, final Class<?> optionalJavaType, final int dataLength) {
-    this.javaType = javaType;
-    this.optionalJavaType = optionalJavaType;
-    this.dataLength = dataLength;
-    this.primitiveType = new AnchorPrimitive(this);
-  }
-
-  AnchorType(final Class<?> javaType, final int dataLength) {
-    this(javaType, javaType, dataLength);
-  }
-
-  AnchorType(final Class<?> javaType) {
-    this(javaType, -1);
-  }
-
-  AnchorType() {
-    this(null, -1);
-  }
-
-  public AnchorPrimitive primitiveType() {
-    return primitiveType;
-  }
-
-  public int dataLength() {
-    return dataLength;
-  }
-
-  public Class<?> javaType() {
-    return javaType;
-  }
-
-  public Class<?> optionalJavaType() {
-    return optionalJavaType;
-  }
-
   static final CharBufferFunction<AnchorType> ANCHOR_TYPE_PARSER = (buf, offset, len) -> {
     final char c = buf[offset];
     if (c == 'i') {
@@ -133,7 +93,6 @@ public enum AnchorType {
       throw throwUnsupportedType(buf, offset, len);
     }
   };
-
   static final CharBufferFunction<AnchorType> ANCHOR_OBJECT_TYPE_PARSER = (buf, offset, len) -> {
     if (fieldEquals("kind", buf, offset, len)) {
       return null;
@@ -149,6 +108,29 @@ public enum AnchorType {
       throw throwUnsupportedType(buf, offset, len);
     }
   };
+  private final Class<?> javaType;
+  private final Class<?> optionalJavaType;
+  private final int dataLength;
+  private final AnchorPrimitive primitiveType;
+
+  AnchorType(final Class<?> javaType, final Class<?> optionalJavaType, final int dataLength) {
+    this.javaType = javaType;
+    this.optionalJavaType = optionalJavaType;
+    this.dataLength = dataLength;
+    this.primitiveType = new AnchorPrimitive(this);
+  }
+
+  AnchorType(final Class<?> javaType, final int dataLength) {
+    this(javaType, javaType, dataLength);
+  }
+
+  AnchorType(final Class<?> javaType) {
+    this(javaType, -1);
+  }
+
+  AnchorType() {
+    this(null, -1);
+  }
 
   static AnchorTypeContext parseContextType(final JsonIterator ji) {
     final var jsonType = ji.whatIsNext();
@@ -175,5 +157,21 @@ public enum AnchorType {
 
   private static RuntimeException throwUnsupportedType(final char[] buf, final int offset, final int len) {
     throw new UnsupportedOperationException("TODO: support type " + new String(buf, offset, len));
+  }
+
+  public AnchorPrimitive primitiveType() {
+    return primitiveType;
+  }
+
+  public int dataLength() {
+    return dataLength;
+  }
+
+  public Class<?> javaType() {
+    return javaType;
+  }
+
+  public Class<?> optionalJavaType() {
+    return optionalJavaType;
   }
 }

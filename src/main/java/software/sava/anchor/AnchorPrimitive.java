@@ -2,9 +2,9 @@ package software.sava.anchor;
 
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.borsh.Borsh;
-import software.sava.core.rpc.Filter;
 import software.sava.core.borsh.RustEnum;
 import software.sava.core.encoding.ByteUtil;
+import software.sava.core.rpc.Filter;
 
 import java.math.BigInteger;
 import java.util.Map;
@@ -16,6 +16,13 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
 
   static RuntimeException throwInvalidDataType(final Class<? extends AnchorTypeContext> type) {
     throw new UnsupportedOperationException(type.getSimpleName());
+  }
+
+  static void addParam(final StringBuilder paramsBuilder,
+                       final String type,
+                       final String varName) {
+    final var param = String.format("final %s %s,\n", type, varName);
+    paramsBuilder.append(param);
   }
 
   @Override
@@ -326,13 +333,6 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
     } else {
       return String.format("%s", type.dataLength());
     }
-  }
-
-  static void addParam(final StringBuilder paramsBuilder,
-                       final String type,
-                       final String varName) {
-    final var param = String.format("final %s %s,\n", type, varName);
-    paramsBuilder.append(param);
   }
 
   @Override

@@ -8,6 +8,10 @@ import java.util.Map;
 
 public record AnchorDefined(String typeName) implements AnchorReferenceTypeContext {
 
+  static AnchorDefined parseDefined(final JsonIterator ji) {
+    return new AnchorDefined(ji.readString());
+  }
+
   @Override
   public AnchorType type() {
     return AnchorType.defined;
@@ -112,9 +116,5 @@ public record AnchorDefined(String typeName) implements AnchorReferenceTypeConte
         AnchorUtil.camelCase(varName, true), typeName(), varName, genSrcContext.tab(), offsetVarName, varName, optional ? "writeOptional" : "write"
     ));
     genSrcContext.addImport(Filter.class);
-  }
-
-  static AnchorDefined parseDefined(final JsonIterator ji) {
-    return new AnchorDefined(ji.readString());
   }
 }

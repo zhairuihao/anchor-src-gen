@@ -29,11 +29,6 @@ final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, Ch
     return ElementFactory.parseList(ji, AnchorNamedTypeParser.FACTORY);
   }
 
-  @Override
-  public AnchorNamedType create() {
-    return AnchorNamedType.createType(name, type, docs, index);
-  }
-
   private static AnchorTypeContext parseTypeContext(final JsonIterator ji) {
     final var jsonType = ji.whatIsNext();
     if (jsonType == ValueType.STRING) {
@@ -45,6 +40,11 @@ final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, Ch
     } else {
       throw new IllegalStateException(String.format("TODO: Support %s Anchor types", jsonType));
     }
+  }
+
+  @Override
+  public AnchorNamedType create() {
+    return AnchorNamedType.createType(name, type, docs, index);
   }
 
   @Override

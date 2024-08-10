@@ -13,33 +13,17 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 
 import static java.nio.file.StandardOpenOption.*;
 
 public record AnchorSourceGenerator(Path sourceDirectory,
+                                    String moduleName,
                                     String packageName,
                                     int tabLength,
                                     AnchorIDL idl) implements Runnable {
-
-  public static AnchorSourceGenerator createGenerator(final HttpClient httpClient,
-                                                      final URI idlURL,
-                                                      final Path sourceDirectory,
-                                                      final String packageName,
-                                                      final int tabLength) {
-    final var idlRequest = HttpRequest.newBuilder()
-        .uri(idlURL)
-        .GET().build();
-    final var idlJson = httpClient.sendAsync(idlRequest, HttpResponse.BodyHandlers.ofByteArray()).join().body();
-    final var idl = AnchorIDL.parseIDL(JsonIterator.parse(idlJson));
-    return new AnchorSourceGenerator(
-        sourceDirectory,
-        packageName,
-        tabLength,
-        idl
-    );
-  }
 
   public static CompletableFuture<AnchorIDL> fetchIDL(final PublicKey idlAddress, final SolanaRpcClient rpcClient) {
     return rpcClient.getAccountInfo(idlAddress, OnChainIDL.FACTORY)
@@ -49,6 +33,12 @@ public record AnchorSourceGenerator(Path sourceDirectory,
   public static CompletableFuture<AnchorIDL> fetchIDLForProgram(final PublicKey programAddress, final SolanaRpcClient rpcClient) {
     final var idlAddress = AnchorUtil.createIdlAddress(programAddress);
     return fetchIDL(idlAddress, rpcClient);
+  }
+
+  public static CompletableFuture<AnchorIDL> fetchIDL(final HttpClient httpClient, final URI idlURL) {
+    final var idlRequest = HttpRequest.newBuilder().uri(idlURL).GET().build();
+    return httpClient.sendAsync(idlRequest, HttpResponse.BodyHandlers.ofByteArray())
+        .thenApply(response -> AnchorIDL.parseIDL(JsonIterator.parse(response.body())));
   }
 
   private static void createDirectories(final Path path) {
@@ -130,7 +120,6 @@ public record AnchorSourceGenerator(Path sourceDirectory,
       }
     }
 
-
     for (final var namedType : idl.events()) {
       genSrcContext.clearImports();
       try {
@@ -143,6 +132,15 @@ public record AnchorSourceGenerator(Path sourceDirectory,
       } catch (final IOException e) {
         throw new UncheckedIOException("Failed to write source code file.", e);
       }
+    }
+  }
+
+  public void addExports(final Set<String> exports) {
+    exports.add(String.format("exports %s;", packageName));
+    if (!idl.accounts().isEmpty()
+        || !idl.types().isEmpty()
+        || !idl.events().isEmpty()) {
+      exports.add(String.format("exports %s.types;", packageName));
     }
   }
 }

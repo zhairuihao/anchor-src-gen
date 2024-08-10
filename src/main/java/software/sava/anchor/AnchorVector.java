@@ -13,6 +13,44 @@ import static software.sava.anchor.AnchorType.*;
 
 public record AnchorVector(AnchorTypeContext genericType, int depth) implements AnchorReferenceTypeContext {
 
+  static AnchorVector parseVector(final JsonIterator ji) {
+    for (int depth = 1; ; ) {
+      final var jsonType = ji.whatIsNext();
+      if (jsonType == ValueType.STRING) {
+        final var genericType = ji.applyChars(ANCHOR_TYPE_PARSER).primitiveType();
+        closeObjects(ji, depth - 1);
+        return new AnchorVector(genericType, depth);
+      } else if (jsonType == ValueType.OBJECT) {
+        var anchorType = ji.applyObjField(ANCHOR_OBJECT_TYPE_PARSER);
+        if (anchorType == null) {
+          anchorType = ji.applyChars(ANCHOR_TYPE_PARSER);
+        }
+        if (anchorType == vec) {
+          ++depth;
+          continue;
+        }
+        final var genericType = switch (anchorType) {
+          case array -> AnchorArray.parseArray(ji);
+          case defined -> AnchorDefined.parseDefined(ji);
+          case _enum -> AnchorEnum.parseEnum(ji);
+          case option -> AnchorOption.parseOption(ji);
+          case struct -> AnchorStruct.parseStruct(ji);
+          default -> throw new IllegalStateException("Unexpected value: " + anchorType);
+        };
+        closeObjects(ji, depth);
+        return new AnchorVector(genericType, depth);
+      } else {
+        throw new IllegalStateException(String.format("TODO: Support %s Anchor types", jsonType));
+      }
+    }
+  }
+
+  private static void closeObjects(final JsonIterator ji, int depth) {
+    while (depth-- > 0) {
+      ji.closeObj();
+    }
+  }
+
   @Override
   public AnchorType type() {
     return vec;
@@ -121,43 +159,5 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
                                     final String offsetVarName,
                                     final boolean optional) {
     // TODO
-  }
-
-  static AnchorVector parseVector(final JsonIterator ji) {
-    for (int depth = 1; ; ) {
-      final var jsonType = ji.whatIsNext();
-      if (jsonType == ValueType.STRING) {
-        final var genericType = ji.applyChars(ANCHOR_TYPE_PARSER).primitiveType();
-        closeObjects(ji, depth - 1);
-        return new AnchorVector(genericType, depth);
-      } else if (jsonType == ValueType.OBJECT) {
-        var anchorType = ji.applyObjField(ANCHOR_OBJECT_TYPE_PARSER);
-        if (anchorType == null) {
-          anchorType = ji.applyChars(ANCHOR_TYPE_PARSER);
-        }
-        if (anchorType == vec) {
-          ++depth;
-          continue;
-        }
-        final var genericType = switch (anchorType) {
-          case array -> AnchorArray.parseArray(ji);
-          case defined -> AnchorDefined.parseDefined(ji);
-          case _enum -> AnchorEnum.parseEnum(ji);
-          case option -> AnchorOption.parseOption(ji);
-          case struct -> AnchorStruct.parseStruct(ji);
-          default -> throw new IllegalStateException("Unexpected value: " + anchorType);
-        };
-        closeObjects(ji, depth);
-        return new AnchorVector(genericType, depth);
-      } else {
-        throw new IllegalStateException(String.format("TODO: Support %s Anchor types", jsonType));
-      }
-    }
-  }
-
-  private static void closeObjects(final JsonIterator ji, int depth) {
-    while (depth-- > 0) {
-      ji.closeObj();
-    }
   }
 }

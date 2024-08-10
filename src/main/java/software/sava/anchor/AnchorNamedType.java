@@ -9,15 +9,10 @@ public record AnchorNamedType(String name,
                               List<String> docs,
                               boolean index) {
 
-  public String docComments() {
-    return docs.stream().map(doc -> String.format("// %s\n", doc)).collect(Collectors.joining());
-  }
-
+  static final List<String> NO_DOCS = List.of();
   private static final Set<String> RESERVED_NAMES = Set.of(
       "new"
   );
-
-  static final List<String> NO_DOCS = List.of();
 
   public static AnchorNamedType createType(final String name,
                                            final AnchorTypeContext type,
@@ -37,6 +32,10 @@ public record AnchorNamedType(String name,
 
   public static AnchorNamedType createType(final String name, final AnchorTypeContext type) {
     return createType(name, type, NO_DOCS, false);
+  }
+
+  public String docComments() {
+    return docs.stream().map(doc -> String.format("// %s\n", doc)).collect(Collectors.joining());
   }
 
   public int generateSerialization(final GenSrcContext genSrcContext,

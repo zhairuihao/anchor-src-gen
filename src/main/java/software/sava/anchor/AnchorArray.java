@@ -60,6 +60,36 @@ public record AnchorArray(AnchorTypeContext genericType,
         : varName;
   }
 
+  static AnchorArray parseArray(final JsonIterator ji) {
+    for (int depth = 1; ; ) {
+      final var jsonType = ji.whatIsNext();
+      if (jsonType == ValueType.ARRAY) {
+        final var genericType = AnchorType.parseContextType(ji.openArray());
+        if (genericType instanceof AnchorDefined) {
+          ji.closeObj();
+        }
+        final int len = ji.continueArray().readInt();
+        final var array = new AnchorArray(genericType, depth, len);
+        do {
+          ji.closeArray();
+        } while (--depth > 0);
+        return array;
+      } else if (jsonType == ValueType.OBJECT) {
+        var anchorType = ji.applyObjField(ANCHOR_OBJECT_TYPE_PARSER);
+        if (anchorType == null) {
+          anchorType = ji.applyChars(ANCHOR_TYPE_PARSER);
+        }
+        if (anchorType == array) {
+          ++depth;
+          continue;
+        }
+        throw new IllegalStateException("Unexpected value: " + anchorType);
+      } else {
+        throw new IllegalStateException(String.format("TODO: Support %s Anchor types", jsonType));
+      }
+    }
+  }
+
   @Override
   public AnchorType type() {
     return array;
@@ -173,35 +203,5 @@ public record AnchorArray(AnchorTypeContext genericType,
     dataLengthBuilder.append(String.format(" + Borsh.fixedLen(%s)", varName));
     dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
     return 0;
-  }
-
-  static AnchorArray parseArray(final JsonIterator ji) {
-    for (int depth = 1; ; ) {
-      final var jsonType = ji.whatIsNext();
-      if (jsonType == ValueType.ARRAY) {
-        final var genericType = AnchorType.parseContextType(ji.openArray());
-        if (genericType instanceof AnchorDefined) {
-          ji.closeObj();
-        }
-        final int len = ji.continueArray().readInt();
-        final var array = new AnchorArray(genericType, depth, len);
-        do {
-          ji.closeArray();
-        } while (--depth > 0);
-        return array;
-      } else if (jsonType == ValueType.OBJECT) {
-        var anchorType = ji.applyObjField(ANCHOR_OBJECT_TYPE_PARSER);
-        if (anchorType == null) {
-          anchorType = ji.applyChars(ANCHOR_TYPE_PARSER);
-        }
-        if (anchorType == array) {
-          ++depth;
-          continue;
-        }
-        throw new IllegalStateException("Unexpected value: " + anchorType);
-      } else {
-        throw new IllegalStateException(String.format("TODO: Support %s Anchor types", jsonType));
-      }
-    }
   }
 }

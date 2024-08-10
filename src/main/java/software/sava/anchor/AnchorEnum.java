@@ -1,7 +1,7 @@
 package software.sava.anchor;
 
-import software.sava.core.rpc.Filter;
 import software.sava.core.borsh.RustEnum;
+import software.sava.core.rpc.Filter;
 import systems.comodal.jsoniter.JsonIterator;
 
 import java.util.List;
@@ -12,6 +12,10 @@ import static software.sava.anchor.AnchorStruct.generateRecord;
 import static software.sava.anchor.AnchorType.string;
 
 public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedTypeContext {
+
+  static AnchorEnum parseEnum(final JsonIterator ji) {
+    return new AnchorEnum(parseList(ji));
+  }
 
   @Override
   public AnchorType type() {
@@ -48,10 +52,6 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
         AnchorUtil.camelCase(varName, true), typeName(), varName, serializeCode.indent(genSrcContext.tabLength())
     ));
     genSrcContext.addImport(Filter.class);
-  }
-
-  static AnchorEnum parseEnum(final JsonIterator ji) {
-    return new AnchorEnum(parseList(ji));
   }
 
   private String generateSimpleEnum(final GenSrcContext genSrcContext,

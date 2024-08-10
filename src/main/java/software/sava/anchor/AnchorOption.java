@@ -9,53 +9,6 @@ import static software.sava.anchor.AnchorType.*;
 
 public record AnchorOption(AnchorTypeContext genericType) implements AnchorReferenceTypeContext {
 
-  @Override
-  public AnchorType type() {
-    return genericType.type();
-  }
-
-  @Override
-  public String generateRecordField(final GenSrcContext genSrcContext, final AnchorNamedType varName, final boolean optional) {
-    return genericType.generateRecordField(genSrcContext, varName, true);
-  }
-
-  @Override
-  public String generateStaticFactoryField(final GenSrcContext genSrcContext, final String varName, final boolean optional) {
-    return genericType.generateStaticFactoryField(genSrcContext, varName, true);
-  }
-
-  @Override
-  public String generateNewInstanceField(final GenSrcContext genSrcContext, final String varName) {
-    return AnchorArray.generateNewInstanceField(genericType, varName);
-  }
-
-  @Override
-  public String generateRead(final GenSrcContext genSrcContext, final String varName, final boolean hasNext) {
-    final var read = genericType.generateRead(genSrcContext, varName, hasNext);
-    final int i = read.indexOf('=');
-    final var readCall = read.substring(i + 2);
-    if (hasNext) {
-      final int sizeLine = readCall.lastIndexOf('\n');
-      return String.format("""
-              %s = _data[i++] == 0 ? %s : %s;
-              if (%s%s) {
-              %s%s
-              }""",
-          read.substring(0, i - 1),
-          notPresentCode(type()),
-          presentCode(type(), readCall.substring(0, sizeLine - 1)),
-          varName, resentCode(type()),
-          genSrcContext.tab(),
-          readCall.substring(sizeLine + 1)
-      );
-    } else {
-      return String.format("%s = _data[i++] == 0 ? %s : %s;",
-          read.substring(0, i - 1),
-          notPresentCode(type()),
-          presentCode(type(), readCall.substring(0, readCall.length() - 1)));
-    }
-  }
-
   public static String presentCode(final AnchorType anchorType, final String read) {
     return switch (anchorType) {
       case array, bytes, string, vec, defined, i128, u128, publicKey, bool -> read;
@@ -102,6 +55,67 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
       case string -> String.format("Borsh.len(_%s)", varName);
       default -> null;
     };
+  }
+
+  static AnchorOption parseOption(final JsonIterator ji) {
+    final AnchorTypeContext genericType;
+    final var jsonType = ji.whatIsNext();
+    if (jsonType == ValueType.STRING) {
+      genericType = ji.applyChars(ANCHOR_TYPE_PARSER).primitiveType();
+    } else if (jsonType == ValueType.OBJECT) {
+      genericType = AnchorType.parseContextType(ji);
+      ji.closeObj();
+    } else {
+      throw new IllegalStateException(String.format("TODO: Support %s Anchor types", jsonType));
+    }
+    return new AnchorOption(genericType);
+  }
+
+  @Override
+  public AnchorType type() {
+    return genericType.type();
+  }
+
+  @Override
+  public String generateRecordField(final GenSrcContext genSrcContext, final AnchorNamedType varName, final boolean optional) {
+    return genericType.generateRecordField(genSrcContext, varName, true);
+  }
+
+  @Override
+  public String generateStaticFactoryField(final GenSrcContext genSrcContext, final String varName, final boolean optional) {
+    return genericType.generateStaticFactoryField(genSrcContext, varName, true);
+  }
+
+  @Override
+  public String generateNewInstanceField(final GenSrcContext genSrcContext, final String varName) {
+    return AnchorArray.generateNewInstanceField(genericType, varName);
+  }
+
+  @Override
+  public String generateRead(final GenSrcContext genSrcContext, final String varName, final boolean hasNext) {
+    final var read = genericType.generateRead(genSrcContext, varName, hasNext);
+    final int i = read.indexOf('=');
+    final var readCall = read.substring(i + 2);
+    if (hasNext) {
+      final int sizeLine = readCall.lastIndexOf('\n');
+      return String.format("""
+              %s = _data[i++] == 0 ? %s : %s;
+              if (%s%s) {
+              %s%s
+              }""",
+          read.substring(0, i - 1),
+          notPresentCode(type()),
+          presentCode(type(), readCall.substring(0, sizeLine - 1)),
+          varName, resentCode(type()),
+          genSrcContext.tab(),
+          readCall.substring(sizeLine + 1)
+      );
+    } else {
+      return String.format("%s = _data[i++] == 0 ? %s : %s;",
+          read.substring(0, i - 1),
+          notPresentCode(type()),
+          presentCode(type(), readCall.substring(0, readCall.length() - 1)));
+    }
   }
 
   @Override
@@ -259,19 +273,5 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
                                     final String offsetVarName,
                                     final boolean optional) {
     genericType.generateMemCompFilter(genSrcContext, builder, varName, offsetVarName, true);
-  }
-
-  static AnchorOption parseOption(final JsonIterator ji) {
-    final AnchorTypeContext genericType;
-    final var jsonType = ji.whatIsNext();
-    if (jsonType == ValueType.STRING) {
-      genericType = ji.applyChars(ANCHOR_TYPE_PARSER).primitiveType();
-    } else if (jsonType == ValueType.OBJECT) {
-      genericType = AnchorType.parseContextType(ji);
-      ji.closeObj();
-    } else {
-      throw new IllegalStateException(String.format("TODO: Support %s Anchor types", jsonType));
-    }
-    return new AnchorOption(genericType);
   }
 }

@@ -11,13 +11,13 @@ def getAppVersion = { ->
           commandLine 'git', 'rev-parse', '--short', 'HEAD'
           standardOutput = gitHashOut
         }
-        return 'git-' + gitHashOut.toString().strip();
+        return 'git-' + gitHashOut.toString().strip()
       }
     } else {
-      return tagName;
+      return tagName
     }
   }
-}
+} as Object
 
 ext {
   VERSION = getAppVersion()

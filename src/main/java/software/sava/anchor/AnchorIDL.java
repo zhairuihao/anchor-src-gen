@@ -22,6 +22,12 @@ public record AnchorIDL(String version,
                         List<AnchorError> errors,
                         Map<String, String> metaData) {
 
+  public static AnchorIDL parseIDL(final JsonIterator ji) {
+    final var parser = new Parser();
+    ji.testObject(parser);
+    return parser.createIDL();
+  }
+
   public String generateSource(final GenSrcContext genSrcContext) {
     final var ixBuilder = new StringBuilder();
     for (final var ix : instructions()) {
@@ -41,12 +47,6 @@ public record AnchorIDL(String version,
         private %s() {
         }""", className).indent(genSrcContext.tabLength()));
     return builder.append('}').toString();
-  }
-
-  public static AnchorIDL parseIDL(final JsonIterator ji) {
-    final var parser = new Parser();
-    ji.testObject(parser);
-    return parser.createIDL();
   }
 
   private static final class Parser implements FieldBufferPredicate {

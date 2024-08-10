@@ -12,6 +12,16 @@ public record GenSrcContext(Map<String, AnchorNamedType> definedTypes,
                             String typePackage,
                             String programName) {
 
+  private static String getPackageGroup(final String importLine) {
+    int i = importLine.indexOf('.');
+    if (i < 0) {
+      return importLine;
+    } else {
+      i = importLine.indexOf('.', i + 1);
+      return i < 0 ? importLine : importLine.substring(0, i);
+    }
+  }
+
   public int tabLength() {
     return tab.length();
   }
@@ -44,17 +54,6 @@ public record GenSrcContext(Map<String, AnchorNamedType> definedTypes,
   public void addUTF_8Import() {
     addStaticImport(StandardCharsets.class, "UTF_8");
   }
-
-  private static String getPackageGroup(final String importLine) {
-    int i = importLine.indexOf('.');
-    if (i < 0) {
-      return importLine;
-    } else {
-      i = importLine.indexOf('.', i + 1);
-      return i < 0 ? importLine : importLine.substring(0, i);
-    }
-  }
-
 
   public void appendImports(final StringBuilder builder) {
     String group, currentGroup = null;
