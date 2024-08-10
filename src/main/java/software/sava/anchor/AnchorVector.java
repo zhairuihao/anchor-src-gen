@@ -115,7 +115,11 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
   }
 
   @Override
-  public void generateMemCompFilter(final GenSrcContext genSrcContext, final StringBuilder builder, final String varName, final String offsetVarName, final boolean optional) {
+  public void generateMemCompFilter(final GenSrcContext genSrcContext,
+                                    final StringBuilder builder,
+                                    final String varName,
+                                    final String offsetVarName,
+                                    final boolean optional) {
     // TODO
   }
 

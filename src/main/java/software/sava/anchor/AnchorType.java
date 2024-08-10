@@ -14,7 +14,6 @@ import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 
 public enum AnchorType {
 
-  // TODO: https://www.anchor-lang.com/docs/account-types
   array,
   bool(boolean.class, Boolean.class, 1),
   bytes(byte[].class, -1),
