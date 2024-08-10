@@ -1,5 +1,7 @@
 package software.sava.anchor;
 
+import software.sava.core.accounts.PublicKey;
+import software.sava.rpc.json.http.client.SolanaRpcClient;
 import systems.comodal.jsoniter.JsonIterator;
 
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
 
 import static java.nio.file.StandardOpenOption.*;
 
@@ -36,6 +39,16 @@ public record AnchorSourceGenerator(Path sourceDirectory,
         tabLength,
         idl
     );
+  }
+
+  public static CompletableFuture<AnchorIDL> fetchIDL(final PublicKey idlAddress, final SolanaRpcClient rpcClient) {
+    return rpcClient.getAccountInfo(idlAddress, OnChainIDL.FACTORY)
+        .thenApply(idlAccountInfo -> AnchorIDL.parseIDL(JsonIterator.parse(idlAccountInfo.data().json())));
+  }
+
+  public static CompletableFuture<AnchorIDL> fetchIDLForProgram(final PublicKey programAddress, final SolanaRpcClient rpcClient) {
+    final var idlAddress = AnchorUtil.createIdlAddress(programAddress);
+    return fetchIDL(idlAddress, rpcClient);
   }
 
   private static void createDirectories(final Path path) {
