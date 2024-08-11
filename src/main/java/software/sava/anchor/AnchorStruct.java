@@ -331,28 +331,6 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
           """, ordinal).indent(tabLength));
     }
 
-    if (isAccount) {
-      builder.append("""
-          @Override
-          public int compareTo(final PublicKey o) {
-            return _address.compareTo(o);
-          }
-          
-          @Override
-          public byte[] toByteArray() {
-            return _address.toByteArray();
-          }
-          
-          @Override
-          public String toBase58() {
-            return _address.toBase58();
-          }
-          
-          @Override
-          public String toBase64() {
-            return _address.toBase64();
-          }""".indent(tabLength));
-    }
     return removeBlankLines(builder.append('}').toString());
   }
 
