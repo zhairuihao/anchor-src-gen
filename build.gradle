@@ -45,13 +45,6 @@ plugins.withType(JavaPlugin).configureEach {
   }
 }
 
-dependencies {
-  implementation "systems.comodal:json-iterator:$jsoniter"
-
-  implementation "software.sava:sava-core:$sava"
-  implementation "software.sava:sava-rpc:$sava"
-}
-
 repositories {
   maven {
     url = "https://maven.pkg.github.com/comodal/json-iterator"
@@ -78,6 +71,11 @@ configurations.configureEach {
 }
 
 dependencies {
+  implementation "systems.comodal:json-iterator:$jsoniter"
+
+  implementation "software.sava:sava-core:$sava"
+  implementation "software.sava:sava-rpc:$sava"
+
   testImplementation 'org.junit.jupiter:junit-jupiter-api:+'
   testImplementation 'org.junit.jupiter:junit-jupiter-params:+'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:+'

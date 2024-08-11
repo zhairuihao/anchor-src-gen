@@ -136,9 +136,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
 
   public void addExports(final Set<String> exports) {
     exports.add(String.format("exports %s;", packageName));
-    if (!idl.accounts().isEmpty()
-        || !idl.types().isEmpty()
-        || !idl.events().isEmpty()) {
+    if (!idl.accounts().isEmpty() || !idl.types().isEmpty() || !idl.events().isEmpty()) {
       exports.add(String.format("exports %s.types;", packageName));
     }
   }
