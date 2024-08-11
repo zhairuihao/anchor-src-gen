@@ -23,7 +23,7 @@ ext {
   VERSION = getAppVersion()
   VCS_URL = 'https://github.com/sava-software/anchor-src-gen'
   jsoniter = '2.11.+'
-  sava = '1.0.+'
+  sava = '1.0.5'
   bouncycastleMinor = 'jdk18on'
   bouncycastlePatch = '1.78.1' // https://www.bouncycastle.org/latest_releases.html#LATEST
 }
