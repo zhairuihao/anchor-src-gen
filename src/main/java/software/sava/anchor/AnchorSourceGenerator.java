@@ -12,10 +12,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardOpenOption.*;
 
@@ -23,6 +25,12 @@ public record AnchorSourceGenerator(Path sourceDirectory,
                                     String packageName,
                                     int tabLength,
                                     AnchorIDL idl) implements Runnable {
+
+  static String removeBlankLines(final String str) {
+    return Arrays.stream(str.split("\n"))
+        .map(line -> !line.isEmpty() && line.isBlank() ? "" : line)
+        .collect(Collectors.joining("\n", "", "\n"));
+  }
 
   public static CompletableFuture<AnchorIDL> fetchIDL(final PublicKey idlAddress, final SolanaRpcClient rpcClient) {
     return rpcClient.getAccountInfo(idlAddress, OnChainIDL.FACTORY)

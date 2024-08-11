@@ -12,6 +12,7 @@ import java.util.function.BiFunction;
 
 import static software.sava.anchor.AnchorInstruction.replaceNewLinesIfLessThan;
 import static software.sava.anchor.AnchorNamedTypeParser.parseList;
+import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static software.sava.anchor.AnchorType.string;
 import static software.sava.core.rpc.Filter.MAX_MEM_COMP_LENGTH;
 
@@ -72,7 +73,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
           %sreturn 0;
           }
           """, name, name, name, tab, tab, tab).indent(tabLength));
-      return builder.append('}').toString();
+      return removeBlankLines(builder.append('}').toString());
     }
 
     int byteLength;
@@ -329,7 +330,30 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
           }
           """, ordinal).indent(tabLength));
     }
-    return builder.append('}').toString();
+
+    if (isAccount) {
+      builder.append("""
+          @Override
+          public int compareTo(final PublicKey o) {
+            return _address.compareTo(o);
+          }
+          
+          @Override
+          public byte[] toByteArray() {
+            return _address.toByteArray();
+          }
+          
+          @Override
+          public String toBase58() {
+            return _address.toBase58();
+          }
+          
+          @Override
+          public String toBase64() {
+            return _address.toBase64();
+          }""".indent(tabLength));
+    }
+    return removeBlankLines(builder.append('}').toString());
   }
 
   static String generatePublicRecord(final GenSrcContext genSrcContext,

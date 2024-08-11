@@ -9,6 +9,7 @@ import java.util.Map;
 
 import static software.sava.anchor.AnchorNamedTypeParser.parseList;
 import static software.sava.anchor.AnchorStruct.generateRecord;
+import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static software.sava.anchor.AnchorType.string;
 
 public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedTypeContext {
@@ -176,7 +177,9 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
       }
 
       genSrcContext.appendImports(header);
-      return header.append(builder).append('}').toString();
+
+      final var sourceCode = header.append(builder).append('}').toString();
+      return removeBlankLines(sourceCode);
     }
   }
 }
