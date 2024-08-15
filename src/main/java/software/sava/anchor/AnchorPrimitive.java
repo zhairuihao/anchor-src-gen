@@ -153,7 +153,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
   }
 
   @Override
-  public String generateRead(final GenSrcContext genSrcContext) {
+  public String generateRead(final GenSrcContext genSrcContext, final String offsetVarName) {
     switch (type) {
       case f32 -> genSrcContext.addStaticImport(ByteUtil.class, "getFloat32LE");
       case f64 -> genSrcContext.addStaticImport(ByteUtil.class, "getFloat64LE");
@@ -164,16 +164,16 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       case publicKey -> genSrcContext.addStaticImport(PublicKey.class, "readPubKey");
     }
     return switch (type) {
-      case bool -> "_data[i] == 1";
-      case f32 -> "getFloat32LE(_data, i)";
-      case f64 -> "getFloat64LE(_data, i)";
-      case i8 -> "_data[i]";
-      case u8 -> "_data[i] & 0xFF";
-      case i16, u16 -> "getInt16LE(_data, i)";
-      case i32, u32 -> "getInt32LE(_data, i)";
-      case i64, u64 -> "getInt64LE(_data, i)";
-      case i128, u128 -> "getInt128LE(_data, i)";
-      case publicKey -> "readPubKey(_data, i)";
+      case bool -> String.format("_data[%s] == 1", offsetVarName);
+      case f32 -> String.format("getFloat32LE(_data, %s)", offsetVarName);
+      case f64 -> String.format("getFloat64LE(_data, %s)", offsetVarName);
+      case i8 -> String.format("_data[%s]", offsetVarName);
+      case u8 -> String.format("_data[%s] & 0xFF", offsetVarName);
+      case i16, u16 -> String.format("getInt16LE(_data, %s)", offsetVarName);
+      case i32, u32 -> String.format("getInt32LE(_data, %s)", offsetVarName);
+      case i64, u64 -> String.format("getInt64LE(_data, %s)", offsetVarName);
+      case i128, u128 -> String.format("getInt128LE(_data, %s)", offsetVarName);
+      case publicKey -> String.format("readPubKey(_data, %s)", offsetVarName);
       default -> throw new IllegalStateException("Unexpected type: " + type);
     };
   }
@@ -181,25 +181,38 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
   @Override
   public String generateRead(final GenSrcContext genSrcContext,
                              final String varName,
-                             final boolean hasNext) {
+                             final boolean hasNext,
+                             final boolean singleField,
+                             final String offsetVarName) {
     if (type == string) {
       genSrcContext.addImport(Borsh.class);
       if (hasNext) {
         genSrcContext.addStaticImport(ByteUtil.class, "getInt32LE");
       }
-      return String.format("final var %s = Borsh.string(_data, i);", varName) + (hasNext ? "\ni += (Integer.BYTES + getInt32LE(_data, i));" : "");
+      final var readLine = String.format("final var %s = Borsh.string(_data, %s);", varName, offsetVarName);
+      return hasNext
+          ? readLine + "\ni += (Integer.BYTES + getInt32LE(_data, i));"
+          : readLine;
     } else if (type == bytes) {
       genSrcContext.addImport(Borsh.class);
-      return String.format("final byte[] %s = Borsh.read(_data, i);", varName) + (hasNext ? String.format("""
+      final var readLine = String.format("final byte[] %s = Borsh.read(_data, %s);", varName, offsetVarName);
+      return hasNext
+          ? readLine + String.format("""
           
-          i += (Integer.BYTES + %s.length);""", varName) : "");
+          i += (Integer.BYTES + %s.length);""", varName)
+          : readLine;
     } else {
-      final var read = generateRead(genSrcContext);
+      final var read = generateRead(genSrcContext, offsetVarName);
       final int dataLength = type.dataLength();
+      final var readLine = String.format("final var %s = %s;", varName, read);
       if (dataLength == 1) {
-        return String.format("final var %s = %s;", varName, read) + (hasNext ? "\n++i;" : "");
+        return hasNext
+            ? readLine + "\n++i;"
+            : readLine;
       } else {
-        return String.format("final var %s = %s;", varName, read) + (hasNext ? String.format("\ni += %d;", dataLength) : "");
+        return hasNext
+            ? readLine + String.format("\ni += %d;", dataLength)
+            : readLine;
       }
     }
   }
@@ -320,7 +333,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
                 return %d;
               }
             }""",
-        name, recordSignature, enumType.getSimpleName(), enumTypeName, name, name, generateRead(genSrcContext), ordinal
+        name, recordSignature, enumType.getSimpleName(), enumTypeName, name, name, generateRead(genSrcContext, "i"), ordinal
     );
   }
 

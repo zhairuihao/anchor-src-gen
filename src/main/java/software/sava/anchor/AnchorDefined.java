@@ -28,14 +28,20 @@ public record AnchorDefined(String typeName) implements AnchorReferenceTypeConte
   }
 
   @Override
-  public String generateRead(final GenSrcContext genSrcContext) {
+  public String generateRead(final GenSrcContext genSrcContext, final String offsetVarName) {
     return String.format("%s.read(_data, i);", typeName);
   }
 
   @Override
-  public String generateRead(final GenSrcContext genSrcContext, final String varName, final boolean hasNext) {
-    return String.format("final var %s = %s.read(_data, i);%s",
-        varName, typeName, hasNext ? String.format("\ni += Borsh.len(%s);", varName) : "");
+  public String generateRead(final GenSrcContext genSrcContext,
+                             final String varName,
+                             final boolean hasNext,
+                             final boolean singleField,
+                             final String offsetVarName) {
+    final var readLine = String.format("final var %s = %s.read(_data, %s);", varName, typeName, offsetVarName);
+    return hasNext
+        ? readLine + String.format("%ni += Borsh.len(%s);", varName)
+        : readLine;
   }
 
   @Override

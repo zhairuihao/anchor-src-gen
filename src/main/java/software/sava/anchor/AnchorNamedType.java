@@ -63,8 +63,11 @@ public record AnchorNamedType(String name,
     return type.generateWrite(genSrcContext, name, hasNext);
   }
 
-  public String generateRead(final GenSrcContext genSrcContext, final boolean hasNext) {
-    return type.generateRead(genSrcContext, name, hasNext);
+  public String generateRead(final GenSrcContext genSrcContext,
+                             final boolean hasNext,
+                             final boolean singleField,
+                             final String offsetVarName) {
+    return type.generateRead(genSrcContext, name, hasNext, singleField, offsetVarName);
   }
 
   public String generateLength() {

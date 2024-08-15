@@ -159,8 +159,6 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
         builder.append(offsetsBuilder.toString().indent(tabLength));
         builder.append(memCompFiltersBuilder.toString().indent(tabLength)).append('\n');
       }
-    } else {
-      builder.append('\n');
     }
 
     final var returnNewLine = String.format("return new %s(", name);
@@ -213,17 +211,18 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
     }
 
     final var readBuilder = new StringBuilder(4_096);
+    final boolean singleField = !isAccount && fields.size() == 1;
+    final var offsetVarName = singleField ? "offset" : "i";
     fieldIterator = fields.iterator();
     for (AnchorNamedType field; ; ) {
       field = fieldIterator.next();
       final boolean hasNext = fieldIterator.hasNext();
-      readBuilder.append(field.generateRead(genSrcContext, hasNext)).append('\n');
+      readBuilder.append(field.generateRead(genSrcContext, hasNext, singleField, offsetVarName)).append('\n');
       if (!hasNext) {
         break;
       }
     }
-    builder.append(String.format("""
-        public static %s read(final byte[] _data, final int offset) {""", name).indent(tabLength));
+    builder.append(String.format("public static %s read(final byte[] _data, final int offset) {", name).indent(tabLength));
     if (isAccount) {
       builder.append(String.format("""
               %sreturn read(null, _data, offset);
@@ -242,7 +241,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
       genSrcContext.addImport(BiFunction.class);
       genSrcContext.addImport(PublicKey.class);
       genSrcContext.addStaticImport(AnchorUtil.class, "parseDiscriminator");
-    } else {
+    } else if (!singleField) {
       builder.append(tab).append(tab).append("int i = offset;\n");
     }
     builder.append(readBuilder.toString().indent(tabLength << 1));

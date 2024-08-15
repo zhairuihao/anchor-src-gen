@@ -92,8 +92,18 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
   }
 
   @Override
-  public String generateRead(final GenSrcContext genSrcContext, final String varName, final boolean hasNext) {
-    final var read = genericType.generateRead(genSrcContext, varName, hasNext);
+  public String generateRead(final GenSrcContext genSrcContext,
+                             final String varName,
+                             final boolean hasNext,
+                             final boolean singleField,
+                             final String offsetVarName) {
+    final var read = genericType.generateRead(
+        genSrcContext,
+        varName,
+        hasNext,
+        singleField,
+        singleField ? offsetVarName + " + 1" : offsetVarName
+    );
     final int i = read.indexOf('=');
     final var readCall = read.substring(i + 2);
     if (hasNext) {
@@ -111,10 +121,12 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
           readCall.substring(sizeLine + 1)
       );
     } else {
-      return String.format("%s = _data[i++] == 0 ? %s : %s;",
+      return String.format("%s = _data[%s] == 0 ? %s : %s;",
           read.substring(0, i - 1),
+          offsetVarName,
           notPresentCode(type()),
-          presentCode(type(), readCall.substring(0, readCall.length() - 1)));
+          presentCode(type(), readCall.substring(0, readCall.length() - 1))
+      );
     }
   }
 
@@ -261,7 +273,10 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
                   return %d;
                 }
               }""",
-          name, recordSignature, enumType.getSimpleName(), enumTypeName, name, name, notPresentCode(type), presentCode(type(), genericType.generateRead(genSrcContext)), ordinal
+          name, recordSignature, enumType.getSimpleName(), enumTypeName,
+          name,
+          name, notPresentCode(type), presentCode(type(), genericType.generateRead(genSrcContext, "i")),
+          ordinal
       );
     }
   }

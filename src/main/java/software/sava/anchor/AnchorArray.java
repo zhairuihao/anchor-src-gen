@@ -139,18 +139,32 @@ public record AnchorArray(AnchorTypeContext genericType,
   @Override
   public String generateRead(final GenSrcContext genSrcContext,
                              final String varName,
-                             final boolean hasNext) {
+                             final boolean hasNext,
+                             final boolean singleField, final String offsetVarName) {
     if (depth > 1) {
       throw new UnsupportedOperationException("TODO: supports multi dimensional arrays.");
     }
+    final String readLine;
     if (genericType instanceof AnchorDefined) {
-      return String.format("final var %s = Borsh.readArray(new %s[%d]%s, %s::read, _data, i);",
-          varName, genericType.typeName(), numElements, arrayDepthCode(depth - 1), genericType.typeName())
-          + (hasNext ? String.format("\ni += Borsh.fixedLen(%s);", varName) : "");
+      readLine = String.format("final var %s = Borsh.readArray(new %s[%d]%s, %s::read, _data, %s);",
+          varName,
+          genericType.typeName(),
+          numElements,
+          arrayDepthCode(depth - 1),
+          genericType.typeName(),
+          offsetVarName
+      );
     } else {
-      return String.format("final var %s = Borsh.readArray(new %s[%d], _data, i);", varName, genericType.typeName(), numElements)
-          + (hasNext ? String.format("\ni += Borsh.fixedLen(%s);", varName) : "");
+      readLine = String.format("final var %s = Borsh.readArray(new %s[%d], _data, %s);",
+          varName,
+          genericType.typeName(),
+          numElements,
+          offsetVarName
+      );
     }
+    return hasNext
+        ? readLine + String.format("%ni += Borsh.fixedLen(%s);", varName)
+        : readLine;
   }
 
   @Override

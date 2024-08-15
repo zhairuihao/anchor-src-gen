@@ -77,29 +77,30 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
   }
 
   @Override
-  public String generateRead(final GenSrcContext genSrcContext, final String varName, final boolean hasNext) {
+  public String generateRead(final GenSrcContext genSrcContext,
+                             final String varName,
+                             final boolean hasNext,
+                             final boolean singleField,
+                             final String offsetVarName) {
     if (depth > 2) {
       throw new UnsupportedOperationException("TODO: support vectors with more than 2 dimensions.");
     }
+    final String readLine;
     if (genericType instanceof AnchorDefined) {
-      final String borshMethodName;
-      if (depth == 1) {
-        borshMethodName = "readVector";
-      } else {
-        borshMethodName = "readMultiDimensionVector";
-      }
-      return String.format("final var %s = Borsh.%s(%s.class, %s::read, _data, i);%s",
-          varName, borshMethodName, genericType.typeName(), genericType.typeName(), hasNext ? String.format("\ni += Borsh.len(%s);", varName) : "");
+      final var borshMethodName = depth == 1 ? "readVector" : "readMultiDimensionVector";
+      readLine = String.format("final var %s = Borsh.%s(%s.class, %s::read, _data, %s);",
+          varName, borshMethodName, genericType.typeName(), genericType.typeName(), offsetVarName);
     } else {
-      final String borshMethodName;
-      if (depth == 1) {
-        borshMethodName = String.format("read%sVector", genericType.type().javaType().getSimpleName());
-      } else {
-        borshMethodName = String.format("readMultiDimension%sVector", genericType.type().javaType().getSimpleName());
-      }
-      return String.format("final var %s = Borsh.%s(_data, i);%s",
-          varName, borshMethodName, hasNext ? String.format("\ni += Borsh.len(%s);", varName) : "");
+      final var javaType = genericType.type().javaType().getSimpleName();
+      final var borshMethodName = depth == 1
+          ? String.format("read%sVector", javaType)
+          : String.format("readMultiDimension%sVector", javaType);
+      readLine = String.format("final var %s = Borsh.%s(_data, %s);",
+          varName, borshMethodName, offsetVarName);
     }
+    return hasNext
+        ? readLine + String.format("\ni += Borsh.len(%s);", varName)
+        : readLine;
   }
 
   @Override

@@ -116,7 +116,7 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
           
           static %s read(final byte[] _data, final int offset) {
           %sfinal int ordinal = _data[offset] & 0xFF;
-          %sint i = offset + 1;
+          %sfinal int i = offset + 1;
           %sreturn switch (ordinal) {""", name, tab, tab, tab).indent(tabLength));
 
       int ordinal = 0;
@@ -133,7 +133,7 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
               if (fieldType.type() == string) {
                 builder.append(String.format("%s.read(_data, i)", entry.name()));
               } else {
-                builder.append(String.format("new %s(%s)", entry.name(), fieldType.generateRead(genSrcContext)));
+                builder.append(String.format("new %s(%s)", entry.name(), fieldType.generateRead(genSrcContext, "i")));
               }
             } else {
               builder.append(String.format("%s.read(_data, i)", entry.name()));
