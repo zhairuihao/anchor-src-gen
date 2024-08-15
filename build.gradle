@@ -28,7 +28,7 @@ ext {
 
   jsoniter = '2.11.+'
 
-  sava = '1.0.13'
+  sava = '1.2.1'
 }
 
 apply plugin: 'java-library'

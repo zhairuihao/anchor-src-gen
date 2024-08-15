@@ -2,6 +2,7 @@ package software.sava.anchor;
 
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.encoding.ByteUtil;
+import software.sava.core.programs.Discriminator;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -11,10 +12,10 @@ import java.util.zip.InflaterInputStream;
 
 import static software.sava.core.accounts.PublicKey.PUBLIC_KEY_LENGTH;
 
-public record OnChainIDL(byte[] discriminator, PublicKey authority, byte[] json) {
+public record OnChainIDL(Discriminator discriminator, PublicKey authority, byte[] json) {
 
   public static BiFunction<PublicKey, byte[], OnChainIDL> FACTORY = (publicKey, data) -> {
-    final byte[] discriminator = AnchorUtil.parseDiscriminator(data);
+    final var discriminator = AnchorUtil.parseDiscriminator(data);
     int i = AnchorUtil.DISCRIMINATOR_LENGTH;
     final var authority = PublicKey.readPubKey(data, i);
     i += PUBLIC_KEY_LENGTH;

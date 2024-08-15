@@ -1,6 +1,7 @@
 package software.sava.anchor;
 
 import software.sava.core.accounts.PublicKey;
+import software.sava.core.programs.Discriminator;
 
 import java.util.List;
 
@@ -21,37 +22,45 @@ public final class AnchorUtil {
     return PublicKey.createWithSeed(basePDA.publicKey(), IDL_SEED, program);
   }
 
+  public static int writeDiscriminator(final Discriminator discriminator, final byte[] data, final int offset) {
+    return writeDiscriminator(discriminator.data(), data, offset);
+  }
+
   public static int writeDiscriminator(final byte[] discriminator, final byte[] data, final int offset) {
     System.arraycopy(discriminator, 0, data, offset, discriminator.length);
     return discriminator.length;
+  }
+
+  public static int writeDiscriminator(final Discriminator discriminator, final byte[] data) {
+    return writeDiscriminator(discriminator.data(), data);
   }
 
   public static int writeDiscriminator(final byte[] discriminator, final byte[] data) {
     return writeDiscriminator(discriminator, data, 0);
   }
 
-  public static byte[] parseDiscriminator(final byte[] data, final int offset) {
+  public static Discriminator parseDiscriminator(final byte[] data, final int offset) {
     final byte[] discriminator = new byte[DISCRIMINATOR_LENGTH];
     System.arraycopy(data, offset, discriminator, 0, DISCRIMINATOR_LENGTH);
-    return discriminator;
+    return Discriminator.createDiscriminator(discriminator);
   }
 
-  public static byte[] parseDiscriminator(final byte[] data) {
+  public static Discriminator parseDiscriminator(final byte[] data) {
     return parseDiscriminator(data, 0);
   }
 
-  public static byte[] toDiscriminator(final String namespace, final String name) {
-    return copyOfRange(
+  public static Discriminator toDiscriminator(final String namespace, final String name) {
+    return Discriminator.createDiscriminator(copyOfRange(
         sha256(snakeCase(namespace + ':' + name).getBytes()),
         0, DISCRIMINATOR_LENGTH
-    );
+    ));
   }
 
-  public static byte[] toDiscriminator(final String name) {
-    return copyOfRange(
+  public static Discriminator toDiscriminator(final String name) {
+    return Discriminator.createDiscriminator(copyOfRange(
         sha256((GLOBAL_NAMESPACE + snakeCase(name)).getBytes()),
         0, DISCRIMINATOR_LENGTH
-    );
+    ));
   }
 
   public static String snakeCase(final String notSnakeCased) {

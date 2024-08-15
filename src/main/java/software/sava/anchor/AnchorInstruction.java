@@ -2,7 +2,7 @@ package software.sava.anchor;
 
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.meta.AccountMeta;
-import software.sava.core.programs.ProgramUtil;
+import software.sava.core.programs.Discriminator;
 import software.sava.core.tx.Instruction;
 
 import java.util.Arrays;
@@ -49,13 +49,14 @@ public record AnchorInstruction(String name, List<AnchorAccountMeta> accounts, L
     return Arrays.stream(discriminator)
         .mapToObj(Integer::toString)
         .collect(Collectors.joining(", ",
-            String.format("  public static final byte[] %s = toDiscriminator(", formatDiscriminatorReference(ixName)), ");"));
+            String.format("  public static final Discriminator %s = toDiscriminator(", formatDiscriminatorReference(ixName)), ");"));
   }
 
-  private static String formatDiscriminator(final String ixName, final byte[] discriminator) {
-    final int[] d = new int[discriminator.length];
+  private static String formatDiscriminator(final String ixName, final Discriminator discriminator) {
+    final byte[] data = discriminator.data();
+    final int[] d = new int[data.length];
     for (int i = 0; i < d.length; ++i) {
-      d[i] = discriminator[i] & 0xff;
+      d[i] = data[i] & 0xff;
     }
     return formatDiscriminator(ixName, d);
   }
@@ -65,7 +66,7 @@ public record AnchorInstruction(String name, List<AnchorAccountMeta> accounts, L
     final var builder = new StringBuilder(2_048);
     builder.append(formatDiscriminator(name, AnchorUtil.toDiscriminator(name)));
     builder.append("\n\n");
-    genSrcContext.addStaticImport(ProgramUtil.class, "toDiscriminator");
+    genSrcContext.addStaticImport(Discriminator.class, "toDiscriminator");
 
     final var keyParamsBuilder = new StringBuilder(1_024);
     final var programMetaReference = String.format("invoked%sProgramMeta", genSrcContext.programName());
