@@ -304,22 +304,34 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
         break;
       }
     }
-    builder.append("""
-        @Override
-        public int l() {
-        """.indent(tabLength));
-    builder.append(tab).append(tab);
-    if (ordinal < 0) {
-      if (isAccount) {
-        builder.append(String.format("return %d + ", AnchorUtil.DISCRIMINATOR_LENGTH));
-      } else {
-        builder.append("return ");
-      }
+
+    if (byteLength > 0) {
+      builder.append(String.format("""
+                  @Override
+                  public int l() {
+                  %sreturn BYTES;
+                  }""",
+              tab
+          ).indent(tabLength)
+      );
     } else {
-      builder.append("return 1 + ");
+      builder.append("""
+          @Override
+          public int l() {
+          """.indent(tabLength));
+      builder.append(tab).append(tab);
+      if (ordinal < 0) {
+        if (isAccount) {
+          builder.append(String.format("return %d + ", AnchorUtil.DISCRIMINATOR_LENGTH));
+        } else {
+          builder.append("return ");
+        }
+      } else {
+        builder.append("return 1 + ");
+      }
+      builder.append(replaceNewLinesIfLessThan(lengthBuilder, fields.size(), 5)).append(";\n");
+      builder.append(tab).append("}\n");
     }
-    builder.append(replaceNewLinesIfLessThan(lengthBuilder, fields.size(), 5)).append(";\n");
-    builder.append(tab).append("}\n");
 
     if (ordinal >= 0) {
       builder.append(String.format("""
