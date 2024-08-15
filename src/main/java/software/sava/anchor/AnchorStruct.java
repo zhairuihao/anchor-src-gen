@@ -159,6 +159,8 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
         builder.append(offsetsBuilder.toString().indent(tabLength));
         builder.append(memCompFiltersBuilder.toString().indent(tabLength)).append('\n');
       }
+    } else if (byteLength > 0) {
+      builder.append('\n');
     }
 
     final var returnNewLine = String.format("return new %s(", name);

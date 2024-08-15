@@ -123,7 +123,7 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
     } else {
       return String.format("%s = _data[%s] == 0 ? %s : %s;",
           read.substring(0, i - 1),
-          offsetVarName,
+          singleField ? offsetVarName : offsetVarName + "++",
           notPresentCode(type()),
           presentCode(type(), readCall.substring(0, readCall.length() - 1))
       );
