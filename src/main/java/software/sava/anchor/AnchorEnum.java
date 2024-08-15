@@ -124,7 +124,7 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
         final var type = entry.type();
         builder.append(tab).append(tab).append(tab).append(String.format("case %d -> ", ordinal++));
         if (type == null) {
-          builder.append(String.format("new %s.INSTANCE", entry.name()));
+          builder.append(String.format("%s.INSTANCE", entry.name()));
         } else if (type instanceof AnchorTypeContextList fieldsList) {
           final var fields = fieldsList.fields();
           if (fields.size() == 1) {
@@ -156,12 +156,12 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
           builder.append('\n').append(String.format("""
               record %s() implements EnumNone, %s {""", entry.name(), name).indent(tabLength));
           builder.append(String.format("""
-              public static final INSTANCE = new %s();
+              public static final %s INSTANCE = new %s();
               
               @Override
               public int ordinal() {
               %sreturn %d;
-              }""", entry.name(), tab, ordinal).indent(tabLength << 1));
+              }""", entry.name(), entry.name(), tab, ordinal).indent(tabLength << 1));
           builder.append(tab).append('}').append('\n');
         } else if (type instanceof AnchorTypeContextList fieldsList) {
           builder.append('\n');
