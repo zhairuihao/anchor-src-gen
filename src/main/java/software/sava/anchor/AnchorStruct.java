@@ -81,7 +81,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
     final StringBuilder memCompFiltersBuilder;
     if (isAccount) {
       paramsBuilder.append("PublicKey _address,\n");
-      paramsBuilder.append("byte[] discriminator,\n");
+      paramsBuilder.append("Discriminator discriminator,\n");
       byteLength = AnchorUtil.DISCRIMINATOR_LENGTH;
       offsetsBuilder = new StringBuilder(2_048);
       memCompFiltersBuilder = new StringBuilder(4_096);
@@ -168,7 +168,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
       final var factoryMethodBuilder = new StringBuilder(2_048);
       if (isAccount) {
         factoryMethodBuilder.append("final PublicKey _address,\n");
-        factoryMethodBuilder.append("final byte[] discriminator,\n");
+        factoryMethodBuilder.append("final Discriminator discriminator,\n");
       }
       fieldIterator = fields.iterator();
       for (AnchorNamedType field; ; ) {
@@ -237,8 +237,8 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
               public static final BiFunction<PublicKey, byte[], %s> FACTORY = %s::read;
               
               public static %s read(final PublicKey _address, final byte[] _data, final int offset) {
-              %sfinal byte[] discriminator = parseDiscriminator(_data, offset);
-              %sint i = offset + discriminator.length;""",
+              %sfinal var discriminator = parseDiscriminator(_data, offset);
+              %sint i = offset + discriminator.length();""",
           tab, name, tab, name, name, name, tab, tab).indent(tabLength));
       genSrcContext.addImport(BiFunction.class);
       genSrcContext.addImport(PublicKey.class);
@@ -281,8 +281,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
     if (ordinal < 0) {
       if (isAccount) {
         builder.append("""
-            System.arraycopy(discriminator, 0, _data, offset, discriminator.length);
-            int i = offset + discriminator.length;""".indent(tabLength << 1));
+            int i = offset + discriminator.write(_data, offset);""".indent(tabLength << 1));
       } else {
         builder.append(tab).append(tab).append("int i = offset;\n");
       }
