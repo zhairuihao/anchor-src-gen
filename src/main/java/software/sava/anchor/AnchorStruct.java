@@ -2,6 +2,7 @@ package software.sava.anchor;
 
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.borsh.Borsh;
+import software.sava.core.programs.Discriminator;
 import software.sava.core.rpc.Filter;
 import systems.comodal.jsoniter.JsonIterator;
 
@@ -82,6 +83,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
     if (isAccount) {
       paramsBuilder.append("PublicKey _address,\n");
       paramsBuilder.append("Discriminator discriminator,\n");
+      genSrcContext.addImport(Discriminator.class);
       byteLength = AnchorUtil.DISCRIMINATOR_LENGTH;
       offsetsBuilder = new StringBuilder(2_048);
       memCompFiltersBuilder = new StringBuilder(4_096);

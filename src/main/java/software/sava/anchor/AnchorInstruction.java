@@ -66,7 +66,7 @@ public record AnchorInstruction(String name, List<AnchorAccountMeta> accounts, L
     final var builder = new StringBuilder(2_048);
     builder.append(formatDiscriminator(name, AnchorUtil.toDiscriminator(name)));
     builder.append("\n\n");
-    genSrcContext.addStaticImport(Discriminator.class, "toDiscriminator");
+    genSrcContext.addImport(Discriminator.class);
 
     final var keyParamsBuilder = new StringBuilder(1_024);
     final var programMetaReference = String.format("invoked%sProgramMeta", genSrcContext.programName());
