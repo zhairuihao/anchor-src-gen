@@ -156,6 +156,7 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
           builder.append('\n').append(String.format("""
               record %s() implements EnumNone, %s {""", entry.name(), name).indent(tabLength));
           builder.append(String.format("""
+              
               public static final %s INSTANCE = new %s();
               
               @Override

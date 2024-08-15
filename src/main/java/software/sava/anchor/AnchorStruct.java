@@ -286,8 +286,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
         builder.append(tab).append(tab).append("int i = offset;\n");
       }
     } else {
-      builder.append(tab).append(tab).append("_data[offset] = (byte) ordinal();\n");
-      builder.append(tab).append(tab).append("int i = 1 + offset;\n");
+      builder.append(tab).append(tab).append("int i = writeOrdinal(_data, offset);\n");
     }
     builder.append(writeBuilder.toString().indent(tabLength << 1));
     builder.append(tab).append(tab).append("return i - offset;\n");
