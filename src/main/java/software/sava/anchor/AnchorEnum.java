@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import static software.sava.anchor.AnchorNamedTypeParser.parseList;
-import static software.sava.anchor.AnchorStruct.generateRecord;
 import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
+import static software.sava.anchor.AnchorStruct.generateRecord;
 import static software.sava.anchor.AnchorType.string;
 
 public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedTypeContext {
@@ -124,7 +124,7 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
         final var type = entry.type();
         builder.append(tab).append(tab).append(tab).append(String.format("case %d -> ", ordinal++));
         if (type == null) {
-          builder.append(String.format("new %s()", entry.name()));
+          builder.append(String.format("new %s.INSTANCE", entry.name()));
         } else if (type instanceof AnchorTypeContextList fieldsList) {
           final var fields = fieldsList.fields();
           if (fields.size() == 1) {
@@ -153,14 +153,16 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
       for (final var entry : values) {
         final var type = entry.type();
         if (type == null) {
+          builder.append('\n').append(String.format("""
+              record %s() implements EnumNone, %s {""", entry.name(), name).indent(tabLength));
           builder.append(String.format("""
-              record %s() implements EnumNone, %s {
+              public static final INSTANCE = new %s();
               
-              %s@Override
-              %spublic int ordinal() {
-              %s%sreturn %d;
-              %s}
-              }""", entry.name(), name, tab, tab, tab, tab, ordinal, tab).indent(tabLength));
+              @Override
+              public int ordinal() {
+              %sreturn %d;
+              }""", entry.name(), tab, ordinal).indent(tabLength << 1));
+          builder.append(tab).append('}').append('\n');
         } else if (type instanceof AnchorTypeContextList fieldsList) {
           builder.append('\n');
           final var fields = fieldsList.fields();
