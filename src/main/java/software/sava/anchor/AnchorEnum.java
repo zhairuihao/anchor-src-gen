@@ -131,10 +131,9 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
           if (fields.size() == 1) {
             final var fieldType = fields.getFirst().type();
             if (fieldType instanceof AnchorPrimitive) {
-              if (fieldType.type() == string) {
+              final var t = fieldType.type();
+              if (t == string || t == bool) {
                 builder.append(String.format("%s.read(_data, i)", entry.name()));
-              } else if (fieldType.type() == bool) {
-                builder.append(String.format("%s ? %s.TRUE : %s.FALSE", fieldType.generateRead(genSrcContext, "i"), entry.name(), entry.name()));
               } else {
                 builder.append(String.format("new %s(%s)", entry.name(), fieldType.generateRead(genSrcContext, "i")));
               }
