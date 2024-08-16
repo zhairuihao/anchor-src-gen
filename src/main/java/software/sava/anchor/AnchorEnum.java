@@ -10,8 +10,6 @@ import java.util.Map;
 import static software.sava.anchor.AnchorNamedTypeParser.parseList;
 import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static software.sava.anchor.AnchorStruct.generateRecord;
-import static software.sava.anchor.AnchorType.bool;
-import static software.sava.anchor.AnchorType.string;
 
 public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedTypeContext {
 
@@ -126,23 +124,8 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
         builder.append(tab).append(tab).append(tab).append(String.format("case %d -> ", ordinal++));
         if (type == null) {
           builder.append(String.format("%s.INSTANCE", entry.name()));
-        } else if (type instanceof AnchorTypeContextList fieldsList) {
-          final var fields = fieldsList.fields();
-          if (fields.size() == 1) {
-            final var fieldType = fields.getFirst().type();
-            if (fieldType instanceof AnchorPrimitive) {
-              final var t = fieldType.type();
-              if (t == string || t == bool) {
-                builder.append(String.format("%s.read(_data, i)", entry.name()));
-              } else {
-                builder.append(String.format("new %s(%s)", entry.name(), fieldType.generateRead(genSrcContext, "i")));
-              }
-            } else {
-              builder.append(String.format("%s.read(_data, i)", entry.name()));
-            }
-          } else {
-            builder.append(String.format("%s.read(_data, i)", entry.name()));
-          }
+        } else {
+          builder.append(String.format("%s.read(_data, i)", entry.name()));
         }
         builder.append(";\n");
       }
