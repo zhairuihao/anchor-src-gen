@@ -144,9 +144,11 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
         }
         builder.append(";\n");
       }
-      builder.append(tab).append(tab).append(tab).append(String.format("""
-          default -> throw new IllegalStateException(java.lang.String.format("Unexpected ordinal [%%d] for enum [%s].", ordinal));
+      builder.append(tab).append(tab).append(tab).append("default -> throw new IllegalStateException(java.lang.String.format(\n");
+      builder.append(tab).append(tab).append(tab).append(tab).append(tab).append(String.format("""
+          "Unexpected ordinal [%%d] for enum [%s]", ordinal
           """, name));
+      builder.append(tab).append(tab).append(tab).append("));\n");
       builder.append(tab).append(tab).append("};\n").append(tab).append("}\n");
 
       ordinal = 0;
