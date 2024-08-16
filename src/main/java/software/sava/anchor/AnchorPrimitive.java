@@ -9,8 +9,7 @@ import software.sava.core.rpc.Filter;
 import java.math.BigInteger;
 import java.util.Map;
 
-import static software.sava.anchor.AnchorType.bytes;
-import static software.sava.anchor.AnchorType.string;
+import static software.sava.anchor.AnchorType.*;
 
 public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeContext {
 
@@ -321,20 +320,48 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       default -> throw new IllegalStateException("Unexpected type: " + type);
     };
 
-    return String.format("""
-            record %s%s implements %s, %s {
-            
-              public static %s read(final byte[] _data, int i) {
-                return new %s(%s);
-              }
-            
-              @Override
-              public int ordinal() {
-                return %d;
-              }
-            }""",
-        name, recordSignature, enumType.getSimpleName(), enumTypeName, name, name, generateRead(genSrcContext, "i"), ordinal
-    );
+    if (type == bool) {
+      return String.format("""
+              record %s%s implements %s, %s {
+              
+                public static final %s TRUE = new %s(true);
+                public static final %s FALSE = new %s(false);
+              
+                public static %s read(final byte[] _data, int i) {
+                  return %s ? %s.TRUE : %s.FALSE;
+                }
+              
+                @Override
+                public int ordinal() {
+                  return %d;
+                }
+              }""",
+          name, recordSignature, enumType.getSimpleName(), enumTypeName,
+          name, name,
+          name, name,
+          name,
+          generateRead(genSrcContext, "i"), name, name,
+          ordinal
+      );
+    } else {
+      return String.format("""
+              record %s%s implements %s, %s {
+              
+                public static %s read(final byte[] _data, int i) {
+                  return new %s(%s);
+                }
+              
+                @Override
+                public int ordinal() {
+                  return %d;
+                }
+              }""",
+          name, recordSignature, enumType.getSimpleName(), enumTypeName,
+          name,
+          name, generateRead(genSrcContext, "i"),
+          ordinal
+      );
+    }
   }
 
   @Override

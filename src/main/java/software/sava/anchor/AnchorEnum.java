@@ -10,6 +10,7 @@ import java.util.Map;
 import static software.sava.anchor.AnchorNamedTypeParser.parseList;
 import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static software.sava.anchor.AnchorStruct.generateRecord;
+import static software.sava.anchor.AnchorType.bool;
 import static software.sava.anchor.AnchorType.string;
 
 public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedTypeContext {
@@ -132,6 +133,8 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
             if (fieldType instanceof AnchorPrimitive) {
               if (fieldType.type() == string) {
                 builder.append(String.format("%s.read(_data, i)", entry.name()));
+              } else if (fieldType.type() == bool) {
+                builder.append(String.format("%s ? %s.TRUE : %s.FALSE", fieldType.generateRead(genSrcContext, "i"), entry.name(), entry.name()));
               } else {
                 builder.append(String.format("new %s(%s)", entry.name(), fieldType.generateRead(genSrcContext, "i")));
               }
