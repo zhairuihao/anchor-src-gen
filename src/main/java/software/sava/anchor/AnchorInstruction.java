@@ -97,10 +97,10 @@ public record AnchorInstruction(String name, List<AnchorAccountMeta> accounts, L
         final String append;
         if (accountMeta.isSigner()) {
           if (accountMeta.isMut()) {
-            append = String.format("createWrite(%s)", varName);
+            append = String.format("createWritableSigner(%s)", varName);
             genSrcContext.addStaticImport(AccountMeta.class, "createWritableSigner");
           } else {
-            append = String.format("createRead(%s)", varName);
+            append = String.format("createWritableSigner(%s)", varName);
             genSrcContext.addStaticImport(AccountMeta.class, "createReadOnlySigner");
           }
         } else if (accountMeta.isMut()) {
