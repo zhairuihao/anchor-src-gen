@@ -100,7 +100,7 @@ public record AnchorInstruction(String name, List<AnchorAccountMeta> accounts, L
             append = String.format("createWritableSigner(%s)", varName);
             genSrcContext.addStaticImport(AccountMeta.class, "createWritableSigner");
           } else {
-            append = String.format("createWritableSigner(%s)", varName);
+            append = String.format("createReadOnlySigner(%s)", varName);
             genSrcContext.addStaticImport(AccountMeta.class, "createReadOnlySigner");
           }
         } else if (accountMeta.isMut()) {
