@@ -77,28 +77,17 @@ public record AnchorInstruction(String name, List<AnchorAccountMeta> accounts, L
     final var stringsBuilder = new StringBuilder(1_024);
     final var createKeysBuilder = new StringBuilder(1_024);
 
-    accounts.stream()
-        .filter(AnchorAccountMeta::isSigner)
-        .peek(context -> keyParamsBuilder.append(context.docComments()))
-        .map(AnchorInstruction::formatKeyName)
-        .forEach(name -> keyParamsBuilder.append("final AccountMeta ").append(name).append(",\n"));
-
-    final var publicKeys = accounts.stream()
-        .filter(context -> !context.isSigner())
-        .peek(context -> keyParamsBuilder.append(context.docComments()))
-        .map(AnchorInstruction::formatKeyName)
-        .peek(name -> keyParamsBuilder.append("final PublicKey ").append(name).append(",\n"))
-        .toList();
-    if (!publicKeys.isEmpty()) {
-      genSrcContext.addImport(PublicKey.class);
-    }
-
     final var dataTab = parentTab + " ".repeat(genSrcContext.tabLength());
     final var keyTab = dataTab + tab;
     createKeysBuilder.append(dataTab).append("final var keys = ");
     if (accounts.isEmpty()) {
       createKeysBuilder.append("AccountMeta.NO_KEYS;\n\n");
     } else {
+      accounts.stream()
+          .peek(context -> keyParamsBuilder.append(context.docComments()))
+          .map(AnchorInstruction::formatKeyName)
+          .forEach(name -> keyParamsBuilder.append("final PublicKey ").append(name).append(",\n"));
+      genSrcContext.addImport(PublicKey.class);
       genSrcContext.addImport(List.class);
       createKeysBuilder.append("List.of(");
       final var accountsIterator = accounts.iterator();
@@ -107,7 +96,13 @@ public record AnchorInstruction(String name, List<AnchorAccountMeta> accounts, L
         final var varName = accountMeta.name().endsWith("Key") || accountMeta.name().endsWith("key") ? accountMeta.name() : accountMeta.name() + "Key";
         final String append;
         if (accountMeta.isSigner()) {
-          append = varName;
+          if (accountMeta.isMut()) {
+            append = String.format("createWrite(%s)", varName);
+            genSrcContext.addStaticImport(AccountMeta.class, "createWritableSigner");
+          } else {
+            append = String.format("createRead(%s)", varName);
+            genSrcContext.addStaticImport(AccountMeta.class, "createReadOnlySigner");
+          }
         } else if (accountMeta.isMut()) {
           append = String.format("createWrite(%s)", varName);
           genSrcContext.addStaticImport(AccountMeta.class, "createWrite");
