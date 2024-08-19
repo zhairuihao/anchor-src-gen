@@ -4,7 +4,6 @@
 # ./genSrc.sh --log="INFO" --tabLength=2 --sourceDirectory="src/main/java" --basePackageName="software.sava.anchor.gen" --rpc=""
 set -e
 
-readonly projectName="anchor-src-gen"
 readonly moduleName="software.sava.anchor_src_gen"
 readonly package="software.sava.anchor.gen"
 readonly mainClass="software.sava.anchor.Entrypoint"
@@ -66,7 +65,7 @@ do
       bp | basePackageName) basePackageName="$val";;
       mn | moduleName) outputModuleName="$val";;
       nt | numThreads) numThreads="$val";;
-      pcsv | programsCSVs) programsCSV="$val";;
+      pcsv | programsCSV) programsCSV="$val";;
       rpc) rpc="$val";;
       sd | sourceDirectory) sourceDirectory="$val";;
       tl | tabLength) tabLength="$val";;
