@@ -34,7 +34,9 @@ public record AnchorSourceGenerator(Path sourceDirectory,
 
   public static CompletableFuture<AnchorIDL> fetchIDL(final PublicKey idlAddress, final SolanaRpcClient rpcClient) {
     return rpcClient.getAccountInfo(idlAddress, OnChainIDL.FACTORY)
-        .thenApply(idlAccountInfo -> AnchorIDL.parseIDL(JsonIterator.parse(idlAccountInfo.data().json())));
+        .thenApply(idlAccountInfo -> idlAccountInfo == null || idlAccountInfo.data() == null
+            ? null
+            : AnchorIDL.parseIDL(JsonIterator.parse(idlAccountInfo.data().json())));
   }
 
   public static CompletableFuture<AnchorIDL> fetchIDLForProgram(final PublicKey programAddress, final SolanaRpcClient rpcClient) {

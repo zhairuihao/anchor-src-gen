@@ -24,11 +24,14 @@ import java.util.function.LongBinaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.lang.System.Logger.Level.WARNING;
 import static java.nio.file.StandardOpenOption.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static software.sava.core.accounts.PublicKey.fromBase58Encoded;
 
 public final class Entrypoint extends Thread {
+
+  private static final System.Logger logger = System.getLogger(Entrypoint.class.getName());
 
   private final Semaphore semaphore;
   private final ConcurrentLinkedQueue<Map.Entry<String, String>> tasks;
@@ -78,7 +81,16 @@ public final class Entrypoint extends Thread {
 
   private AnchorSourceGenerator createGenerator(final String moduleName, final PublicKey programAddress) {
     final var idl = AnchorSourceGenerator.fetchIDLForProgram(programAddress, rpcClient).join();
-    return createGenerator(moduleName, idl);
+    if (idl == null) {
+      final var idlAddress = AnchorUtil.createIdlAddress(programAddress);
+      logger.log(WARNING, String.format(
+          "Failed to find an IDL for %s using a program address %s at the IDL address %s.",
+          moduleName, programAddress, idlAddress
+      ));
+      return null;
+    } else {
+      return createGenerator(moduleName, idl);
+    }
   }
 
   private AnchorSourceGenerator createGenerator(final String moduleName, final URI url) {
@@ -103,7 +115,7 @@ public final class Entrypoint extends Thread {
     Map.Entry<String, String> task = null;
     for (long delayMillis, latestCall, now, sleep; ; ) {
       try {
-        task = this.tasks.poll();
+        task = this.tasks.peek();
         if (task == null) {
           return;
         }
@@ -116,8 +128,15 @@ public final class Entrypoint extends Thread {
           MILLISECONDS.sleep(sleep);
           now = System.currentTimeMillis();
         }
-        this.latestCall.getAndAccumulate(now, MAX);
+        task = this.tasks.poll();
+        if (task == null) {
+          return;
+        }
         final var generator = createGenerator(task);
+        if (generator == null) {
+          continue;
+        }
+        this.latestCall.getAndAccumulate(now, MAX);
         generator.run();
         generator.addExports(exports);
         this.latestCall.getAndAccumulate(now + ((System.currentTimeMillis() - now) >> 1), MAX);

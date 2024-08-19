@@ -12,9 +12,15 @@ import java.util.zip.InflaterInputStream;
 
 import static software.sava.core.accounts.PublicKey.PUBLIC_KEY_LENGTH;
 
-public record OnChainIDL(Discriminator discriminator, PublicKey authority, byte[] json) {
+public record OnChainIDL(PublicKey address,
+                         Discriminator discriminator,
+                         PublicKey authority,
+                         byte[] json) {
 
-  public static BiFunction<PublicKey, byte[], OnChainIDL> FACTORY = (publicKey, data) -> {
+  public static BiFunction<PublicKey, byte[], OnChainIDL> FACTORY = (address, data) -> {
+    if (data == null || data.length == 0) {
+      return null;
+    }
     final var discriminator = AnchorUtil.parseDiscriminator(data);
     int i = AnchorUtil.DISCRIMINATOR_LENGTH;
     final var authority = PublicKey.readPubKey(data, i);
@@ -24,7 +30,7 @@ public record OnChainIDL(Discriminator discriminator, PublicKey authority, byte[
     try (final var bais = new ByteArrayInputStream(data, i, compressedLength)) {
       try (final var iis = new InflaterInputStream(bais)) {
         final byte[] uncompressedData = iis.readAllBytes();
-        return new OnChainIDL(discriminator, authority, uncompressedData);
+        return new OnChainIDL(address, discriminator, authority, uncompressedData);
       }
     } catch (final IOException e) {
       throw new UncheckedIOException(e);
