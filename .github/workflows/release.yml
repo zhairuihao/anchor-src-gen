@@ -36,10 +36,14 @@ jobs:
       - run: printf "org.gradle.java.home=%s" "$JAVA_HOME" > gradle.properties
         if: ${{ vars.GRADLE_JAVA_VERSION == vars.JAVA_VERSION }}
 
-      - name: Github Packages
+      - name: Generate Source, Check & Publish
         run: |
           printf "\norg.gradle.java.installations.paths=%s" "$JAVA_HOME" >> gradle.properties
           java --version
-          ./gradlew --stacktrace -PtargetJava=${{ vars.JAVA_VERSION }} check publish
+          ./genSrc.sh --tjv="${{ vars.JAVA_VERSION }}" --tl=2 --bdm=200 --nt=5 --rpc="${{ secrets.RPC_URL }}"
+          ./gradlew -PtargetJava=${{ vars.JAVA_VERSION }} --stacktrace check publish
         env:
+          GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_SAVA_USER: ${{ secrets.GPR_USER }}
+          GITHUB_SAVA_TOKEN: ${{ secrets.GPR_TOKEN }}

@@ -2,6 +2,24 @@
 
 # Anchor Source Generator [![Build](https://github.com/sava-software/anchor-src-gen/actions/workflows/gradle.yml/badge.svg)](https://github.com/sava-software/anchor-src-gen/actions/workflows/gradle.yml) [![Release](https://github.com/sava-software/anchor-src-gen/actions/workflows/release.yml/badge.svg)](https://github.com/sava-software/anchor-src-gen/actions/workflows/release.yml)
 
+## Generate Source
+
+Replace the values below to fit your needs.
+
+```bash
+./genSrc.sh \
+ --log=[INFO|WARN|DEBUG] \
+ --tabLength=2 \
+ --sourceDirectory="src/main/java" \
+ --moduleName="software.sava.anchor_src_gen" \
+ --basePackageName="software.sava.anchor.gen" \
+ --rpc="https://rpc.com" \
+ --programsCSV="./main_net_programs.csv" \
+ --baseDelayMillis=200 \
+ --numThreads=5 \
+ --screen=[0|1]
+```
+
 ## Requirements
 
 - The latest generally available JDK. This project will continue to move to the latest and will not maintain

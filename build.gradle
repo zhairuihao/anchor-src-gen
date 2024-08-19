@@ -1,3 +1,23 @@
+buildscript {
+  repositories {
+    maven { url = 'https://plugins.gradle.org/m2/' }
+    mavenCentral()
+  }
+  dependencies {
+    // https://plugins.gradle.org/plugin/org.beryx.jlink
+    classpath "org.beryx:badass-jlink-plugin:3.0.1"
+  }
+}
+
+def gitHash = { ->
+  def stdout = new ByteArrayOutputStream()
+  exec {
+    commandLine 'git', 'rev-parse', '--short', 'HEAD'
+    standardOutput = stdout
+  }
+  return stdout.toString().trim();
+} as Object
+
 def getAppVersion = { ->
   try (final var gitTagOut = new ByteArrayOutputStream()) {
     exec {
@@ -26,13 +46,15 @@ ext {
   bouncycastleMinor = 'jdk18on'
   bouncycastlePatch = '1.78.1' // https://www.bouncycastle.org/latest_releases.html#LATEST
 
-  jsoniter = '2.11.+'
+  jsoniter = '[2,)'
 
-  sava = '1.2.5'
+  sava = '[1,)'
+  sava_solana_programs = '[1,)'
 }
 
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
+apply plugin: 'org.beryx.jlink'
 
 project.group = 'software.sava'
 project.version = "$VERSION"
@@ -63,6 +85,13 @@ repositories {
       password = project.findProperty("gpr.token") ?: System.getenv("GITHUB_TOKEN")
     }
   }
+  maven {
+    url = "https://maven.pkg.github.com/sava-software/solana-programs"
+    credentials {
+      username = project.findProperty("gpr.sava.user") ?: System.getenv("GITHUB_SAVA_USER")
+      password = project.findProperty("gpr.sava.token") ?: System.getenv("GITHUB_SAVA_TOKEN")
+    }
+  }
   mavenCentral()
 }
 
@@ -78,6 +107,7 @@ dependencies {
 
   implementation "software.sava:sava-core:$sava"
   implementation "software.sava:sava-rpc:$sava"
+  implementation "software.sava:solana-programs:$sava_solana_programs"
 
   testImplementation 'org.junit.jupiter:junit-jupiter-api:+'
   testImplementation 'org.junit.jupiter:junit-jupiter-params:+'
@@ -124,6 +154,15 @@ publishing {
         username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user.write")
         password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.token.write")
       }
+    }
+  }
+
+  afterEvaluate {
+    jlink {
+      mergedModuleJarVersion.set("0")
+      imageName.set(gitHash())
+      options.addAll(List.of('--bind-services', '--no-man-pages', '--ignore-signing-information'))
+      enableCds()
     }
   }
 }

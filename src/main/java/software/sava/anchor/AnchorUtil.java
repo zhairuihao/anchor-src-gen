@@ -14,9 +14,6 @@ public final class AnchorUtil {
   private static final String GLOBAL_NAMESPACE = "global:";
   private static final String IDL_SEED = "anchor:idl";
 
-  private AnchorUtil() {
-  }
-
   public static PublicKey createIdlAddress(final PublicKey program) {
     final var basePDA = PublicKey.findProgramAddress(List.of(), program);
     return PublicKey.createWithSeed(basePDA.publicKey(), IDL_SEED, program);
@@ -128,5 +125,8 @@ public final class AnchorUtil {
     }
 
     return !changedFirst && c == len ? maybeSnakeCase : new String(buf, 0, c);
+  }
+
+  private AnchorUtil() {
   }
 }
