@@ -70,8 +70,8 @@ public record AnchorNamedType(String name,
     return type.generateRead(genSrcContext, name, hasNext, singleField, offsetVarName);
   }
 
-  public String generateLength() {
-    return type.generateLength(name);
+  public String generateLength(final GenSrcContext genSrcContext) {
+    return type.generateLength(name, genSrcContext);
   }
 
   public void generateMemCompFilter(final GenSrcContext genSrcContext,

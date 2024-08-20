@@ -2,8 +2,10 @@ package software.sava.anchor;
 
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.tx.Instruction;
+import software.sava.rpc.json.PublicKeyEncoding;
 import software.sava.rpc.json.http.SolanaNetwork;
 import software.sava.rpc.json.http.client.SolanaRpcClient;
+import systems.comodal.jsoniter.ContextFieldBufferPredicate;
 import systems.comodal.jsoniter.JsonIterator;
 
 import java.io.IOException;
@@ -12,7 +14,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.Collection;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -24,17 +27,19 @@ import java.util.function.LongBinaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.lang.System.Logger.Level.ERROR;
 import static java.lang.System.Logger.Level.WARNING;
 import static java.nio.file.StandardOpenOption.*;
+import static java.util.Objects.requireNonNullElse;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static software.sava.core.accounts.PublicKey.fromBase58Encoded;
+import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 
 public final class Entrypoint extends Thread {
 
   private static final System.Logger logger = System.getLogger(Entrypoint.class.getName());
 
   private final Semaphore semaphore;
-  private final ConcurrentLinkedQueue<Map.Entry<String, String>> tasks;
+  private final ConcurrentLinkedQueue<ProgramConfig> tasks;
   private final AtomicLong errorCount;
   private final long baseDelayMillis;
   private final AtomicLong latestCall;
@@ -45,7 +50,7 @@ public final class Entrypoint extends Thread {
   private final int tabLength;
 
   private Entrypoint(final Semaphore semaphore,
-                     final ConcurrentLinkedQueue<Map.Entry<String, String>> tasks,
+                     final ConcurrentLinkedQueue<ProgramConfig> tasks,
                      final AtomicLong errorCount,
                      final long baseDelayMillis,
                      final AtomicLong latestCall,
@@ -66,53 +71,12 @@ public final class Entrypoint extends Thread {
     this.tabLength = tabLength;
   }
 
-  private String formatPackage(final String moduleName) {
-    return String.format("%s.%s.anchor", basePackageName, moduleName);
-  }
-
-  private AnchorSourceGenerator createGenerator(final String moduleName, final AnchorIDL idl) {
-    return new AnchorSourceGenerator(
-        sourceDirectory,
-        formatPackage(moduleName),
-        tabLength,
-        idl
-    );
-  }
-
-  private AnchorSourceGenerator createGenerator(final String moduleName, final PublicKey programAddress) {
-    final var idl = AnchorSourceGenerator.fetchIDLForProgram(programAddress, rpcClient).join();
-    if (idl == null) {
-      final var idlAddress = AnchorUtil.createIdlAddress(programAddress);
-      logger.log(WARNING, String.format(
-          "Failed to find an IDL for %s using a program address %s at the IDL address %s.",
-          moduleName, programAddress, idlAddress
-      ));
-      return null;
-    } else {
-      return createGenerator(moduleName, idl);
-    }
-  }
-
-  private AnchorSourceGenerator createGenerator(final String moduleName, final URI url) {
-    final var idl = AnchorSourceGenerator.fetchIDL(rpcClient.httpClient(), url).join();
-    return createGenerator(moduleName, idl);
-  }
-
-  private AnchorSourceGenerator createGenerator(final String moduleName, final String addressOrURL) {
-    return addressOrURL.startsWith("https://")
-        ? createGenerator(moduleName, URI.create(addressOrURL))
-        : createGenerator(moduleName, fromBase58Encoded(addressOrURL));
-  }
-
-  private AnchorSourceGenerator createGenerator(final Map.Entry<String, String> task) {
-    return createGenerator(task.getKey(), task.getValue());
-  }
 
   private static final LongBinaryOperator MAX = Long::max;
 
   @Override
   public void run() {
-    Map.Entry<String, String> task = null;
+    ProgramConfig task = null;
     for (long delayMillis, latestCall, now, sleep; ; ) {
       try {
         task = this.tasks.peek();
@@ -132,16 +96,24 @@ public final class Entrypoint extends Thread {
         if (task == null) {
           return;
         }
-        final var generator = createGenerator(task);
-        if (generator == null) {
+        final var idl = task.fetchIDL(rpcClient);
+        if (idl == null) {
           continue;
         }
+        final var packageName = task.formatPackage(basePackageName);
+        final var generator = new AnchorSourceGenerator(
+            sourceDirectory,
+            packageName,
+            tabLength,
+            idl
+        );
         this.latestCall.getAndAccumulate(now, MAX);
         generator.run();
         generator.addExports(exports);
         this.latestCall.getAndAccumulate(now + ((System.currentTimeMillis() - now) >> 1), MAX);
         this.errorCount.getAndUpdate(x -> x > 0 ? x - 1 : x);
       } catch (final RuntimeException e) {
+        logger.log(ERROR, "Failed to generate IDL for " + task, e);
         this.errorCount.getAndUpdate(x -> x < 100 ? x + 1 : x);
         this.tasks.add(task);
       } catch (final InterruptedException e) {
@@ -161,7 +133,78 @@ public final class Entrypoint extends Thread {
     return property == null || property.isBlank() ? orElse : property;
   }
 
-  public static void main(final String[] args) throws InterruptedException {
+  private record ProgramConfig(String name,
+                               String packageName,
+                               PublicKey programAddress,
+                               PublicKey idlAddress,
+                               URI idlURL) {
+
+    String formatPackage(final String basePackageName) {
+      return String.format("%s.%s.anchor", basePackageName, packageName);
+    }
+
+    AnchorIDL fetchIDL(final SolanaRpcClient rpcClient) {
+      if (idlURL == null) {
+        final var idl = AnchorSourceGenerator.fetchIDLForProgram(programAddress, rpcClient).join();
+        if (idl == null) {
+          logger.log(WARNING, String.format(
+              "Failed to find an IDL for %s using a program address %s at the IDL address %s.",
+              name, programAddress, idlAddress
+          ));
+          return null;
+        } else {
+          return idl;
+        }
+      } else {
+        return AnchorSourceGenerator.fetchIDL(rpcClient.httpClient(), idlURL).join();
+      }
+    }
+
+    public static void parseConfigs(final Collection<ProgramConfig> configs, final JsonIterator ji) {
+      while (ji.readArray()) {
+        final var config = ji.testObject(new Builder(), CONFIG_PARSER).createConfig();
+        configs.add(config);
+      }
+    }
+
+    private static final ContextFieldBufferPredicate<Builder> CONFIG_PARSER = (builder, buf, offset, len, ji) -> {
+      if (fieldEquals("name", buf, offset, len)) {
+        builder.name = ji.readString();
+      } else if (fieldEquals("package", buf, offset, len)) {
+        builder.packageName = ji.readString();
+      } else if (fieldEquals("program", buf, offset, len)) {
+        builder.programAddress = PublicKeyEncoding.parseBase58Encoded(ji);
+      } else if (fieldEquals("idlURL", buf, offset, len)) {
+        builder.idlURL = java.net.URI.create(ji.readString());
+      } else {
+        ji.skip();
+      }
+      return true;
+    };
+
+    private static final class Builder {
+
+      private String name;
+      private String packageName;
+      private PublicKey programAddress;
+      private URI idlURL;
+
+      private Builder() {
+      }
+
+      private ProgramConfig createConfig() {
+        return new ProgramConfig(
+            name,
+            requireNonNullElse(packageName, name.toLowerCase(Locale.ENGLISH)),
+            programAddress,
+            AnchorUtil.createIdlAddress(programAddress),
+            idlURL
+        );
+      }
+    }
+  }
+
+  public static void main(final String[] args) throws InterruptedException, IOException {
     final var clas = Entrypoint.class;
     final var moduleName = clas.getModule().getName();
     final int tabLength = Integer.parseInt(propertyOrElse(
@@ -172,17 +215,17 @@ public final class Entrypoint extends Thread {
     final var outputModuleName = propertyOrElse(moduleName + ".moduleName", moduleName);
     final var basePackageName = propertyOrElse(moduleName + ".basePackageName", clas.getPackageName());
     final var rpcEndpoint = System.getProperty(moduleName + ".rpc");
-    final var programsCSV = mandatoryProperty(moduleName + ".programsCSV");
+    final var programsJsonFile = mandatoryProperty(moduleName + ".programs");
     final int numThreads = Integer.parseInt(propertyOrElse(moduleName + ".numThreads", "5"));
     final int baseDelayMillis = Integer.parseInt(propertyOrElse(moduleName + ".baseDelayMillis", "200"));
 
-    try (final var lines = Files.lines(Path.of(programsCSV))) {
+    final var tasks = new ConcurrentLinkedQueue<ProgramConfig>();
+    try (final var ji = JsonIterator.parse(Files.readAllBytes(Path.of(programsJsonFile)))) {
+      ProgramConfig.parseConfigs(tasks, ji);
+    }
+
+    try {
       final var semaphore = new Semaphore(numThreads, false);
-      final var tasks = new ConcurrentLinkedQueue<Map.Entry<String, String>>();
-      lines.map(line -> {
-        final int comma = line.indexOf(',');
-        return Map.entry(line.substring(0, comma), line.substring(comma + 1));
-      }).forEach(tasks::add);
 
       final var errorCount = new AtomicLong();
       final var latestCall = new AtomicLong();

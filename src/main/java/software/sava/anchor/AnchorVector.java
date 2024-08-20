@@ -127,7 +127,8 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
   }
 
   @Override
-  public String generateLength(final String varName) {
+  public String generateLength(final String varName, final GenSrcContext genSrcContext) {
+    genSrcContext.addImport(Borsh.class);
     return String.format("Borsh.len(%s)", varName);
   }
 
@@ -143,8 +144,12 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
     final var varName = context.name();
     final var param = String.format("final %s%s %s,\n", genericType.typeName(), arrayDepthCode(depth), varName);
     paramsBuilder.append(param);
+    genSrcContext.addImport(Borsh.class);
     dataLengthBuilder.append(String.format(" + Borsh.len(%s)", varName));
     dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
+    if (genericType instanceof AnchorDefined) {
+      genSrcContext.addDefinedImport(genericType.typeName());
+    }
     return 0;
   }
 

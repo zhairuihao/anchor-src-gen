@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# ./genSrc.sh --log=[INFO|WARN|DEBUG] --tabLength=2 --sourceDirectory="src/main/java" --basePackageName="software.sava.anchor.gen" --programsCSV="main_net_programs.csv" --screen=[1|0] --rpc=""
+# ./genSrc.sh --log=[INFO|WARN|DEBUG] --tabLength=2 --sourceDirectory="src/main/java" --basePackageName="software.sava.anchor.gen" --programs="main_net_programs.json" --screen=[1|0] --rpc=""
 # ./genSrc.sh --log="INFO" --tabLength=2 --sourceDirectory="src/main/java" --basePackageName="software.sava.anchor.gen" --rpc=""
 set -e
 
@@ -25,7 +25,7 @@ sourceDirectory="src/main/java";
 outputModuleName="";
 basePackageName="$package";
 rpc="";
-programsCSV="./main_net_programs.csv";
+programs="./main_net_programs.json";
 numThreads=5;
 baseDelayMillis=200;
 
@@ -65,7 +65,7 @@ do
       bp | basePackageName) basePackageName="$val";;
       mn | moduleName) outputModuleName="$val";;
       nt | numThreads) numThreads="$val";;
-      pcsv | programsCSV) programsCSV="$val";;
+      p | programs) programs="$val";;
       rpc) rpc="$val";;
       sd | sourceDirectory) sourceDirectory="$val";;
       tl | tabLength) tabLength="$val";;
@@ -99,7 +99,7 @@ javaArgs+=(
   "-D$moduleName.basePackageName=$basePackageName"
   "-D$moduleName.moduleName=$outputModuleName"
   "-D$moduleName.numThreads=$numThreads"
-  "-D$moduleName.programsCSV=$programsCSV"
+  "-D$moduleName.programs=$programs"
   "-D$moduleName.rpc=$rpc"
   "-D$moduleName.sourceDirectory=$sourceDirectory"
   "-D$moduleName.tabLength=$tabLength"

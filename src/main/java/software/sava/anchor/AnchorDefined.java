@@ -75,7 +75,8 @@ public record AnchorDefined(String typeName) implements AnchorReferenceTypeConte
   }
 
   @Override
-  public String generateLength(final String varName) {
+  public String generateLength(final String varName, final GenSrcContext genSrcContext) {
+    genSrcContext.addImport(Borsh.class);
     return String.format("Borsh.len(%s)", varName);
   }
 
@@ -91,9 +92,9 @@ public record AnchorDefined(String typeName) implements AnchorReferenceTypeConte
     paramsBuilder.append(context.docComments());
     final var varName = context.name();
     paramsBuilder.append(String.format("final %s %s,\n", typeName, varName));
+    genSrcContext.addImport(Borsh.class);
     dataLengthBuilder.append(String.format(" + Borsh.len(%s)", varName));
     dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
-    genSrcContext.addImport(Borsh.class);
     return 0;
   }
 

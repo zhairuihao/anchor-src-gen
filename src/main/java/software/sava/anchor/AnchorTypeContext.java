@@ -100,7 +100,7 @@ public sealed interface AnchorTypeContext permits AnchorDefinedTypeContext, Anch
     throw throwInvalidDataType();
   }
 
-  default String generateLength(final String varName) {
+  default String generateLength(final String varName, final GenSrcContext genSrcContext) {
     throw throwInvalidDataType();
   }
 

@@ -14,7 +14,7 @@ Replace the values below to fit your needs.
  --moduleName="software.sava.anchor_src_gen" \
  --basePackageName="software.sava.anchor.gen" \
  --rpc="https://rpc.com" \
- --programsCSV="./main_net_programs.csv" \
+ --programs="./main_net_programs.csv" \
  --baseDelayMillis=200 \
  --numThreads=5 \
  --screen=[0|1]

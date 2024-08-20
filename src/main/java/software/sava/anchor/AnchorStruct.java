@@ -298,7 +298,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
     fieldIterator = fields.iterator();
     for (AnchorNamedType field; ; ) {
       field = fieldIterator.next();
-      lengthBuilder.append(field.generateLength());
+      lengthBuilder.append(field.generateLength(genSrcContext));
       if (fieldIterator.hasNext()) {
         lengthBuilder.append('\n').append(tab).append(tab).append(LENGTH_ADD_ALIGN_TAB).append("+ ");
       } else {

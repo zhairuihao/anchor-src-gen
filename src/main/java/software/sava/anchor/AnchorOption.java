@@ -1,5 +1,6 @@
 package software.sava.anchor;
 
+import software.sava.core.borsh.Borsh;
 import software.sava.core.borsh.RustEnum;
 import systems.comodal.jsoniter.JsonIterator;
 import systems.comodal.jsoniter.ValueType;
@@ -134,6 +135,7 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
   public String generateWrite(final GenSrcContext genSrcContext,
                               final String varName,
                               final boolean hasNext) {
+    genSrcContext.addImport(Borsh.class);
     final var type = genericType.type();
     if (type == string) {
       return String.format((hasNext ? "i += Borsh.writeOptional(_%s, _data, i);" : "Borsh.writeOptional(_%s, _data, i);"), varName);
@@ -143,13 +145,19 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
   }
 
   @Override
-  public String generateLength(final String varName) {
+  public String generateLength(final String varName, final GenSrcContext genSrcContext) {
     final var type = type();
     final int dataLength = type.dataLength();
     if (dataLength < 0) {
       return switch (type) {
-        case bytes, defined -> String.format("Borsh.lenOptional(%s)", varName);
-        case string -> String.format("Borsh.lenOptional(_%s)", varName);
+        case bytes, defined -> {
+          genSrcContext.addImport(Borsh.class);
+          yield String.format("Borsh.lenOptional(%s)", varName);
+        }
+        case string -> {
+          genSrcContext.addImport(Borsh.class);
+          yield String.format("Borsh.lenOptional(_%s)", varName);
+        }
         default -> {
           final var notPresentCheckCode = notPresentCheckCode(type, varName);
           final var dynamicLengthCode = dynamicLengthCode(type, varName);
@@ -158,7 +166,10 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
       };
     } else {
       return switch (type) {
-        case i128, u128, publicKey -> String.format("Borsh.lenOptional(%s, %d)", varName, dataLength);
+        case i128, u128, publicKey -> {
+          genSrcContext.addImport(Borsh.class);
+          yield String.format("Borsh.lenOptional(%s, %d)", varName, dataLength);
+        }
         default -> String.format("%s", 1 + dataLength);
       };
     }

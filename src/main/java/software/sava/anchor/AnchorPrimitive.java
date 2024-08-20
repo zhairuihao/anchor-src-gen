@@ -365,10 +365,12 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
   }
 
   @Override
-  public String generateLength(final String varName) {
+  public String generateLength(final String varName, final GenSrcContext genSrcContext) {
     if (type == string) {
+      genSrcContext.addImport(Borsh.class);
       return String.format("Borsh.len(_%s)", varName);
     } else if (type == bytes) {
+      genSrcContext.addImport(Borsh.class);
       return String.format("Borsh.len(%s)", varName);
     } else {
       return String.format("%s", type.dataLength());
@@ -390,10 +392,12 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
     if (type == string) {
       genSrcContext.addUTF_8Import();
       stringsBuilder.append(String.format("final byte[] _%s = %s.getBytes(UTF_8);\n", varName, varName));
+      genSrcContext.addImport(Borsh.class);
       dataLengthBuilder.append(String.format(" + Borsh.len(_%s)", varName));
       dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
       return 4;
     } else if (type == bytes) {
+      genSrcContext.addImport(Borsh.class);
       dataLengthBuilder.append(String.format(" + Borsh.len(%s)", varName));
       dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
       return 4;
