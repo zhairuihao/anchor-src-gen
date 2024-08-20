@@ -44,7 +44,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
     if (optional) {
       serializeCode = switch (type) {
         case bool ->
-            String.format("return Filter.createMemCompFilter(%s, new byte[]{(byte) 1, (byte) (%s ? 1 : 0});", offsetVarName, varName);
+            String.format("return Filter.createMemCompFilter(%s, new byte[]{(byte) 1, (byte) (%s ? 1 : 0)});", offsetVarName, varName);
         case bytes -> String.format("""
             final byte[] _data = new byte[5 + %s.length];
             _data[0] = 1;
@@ -74,7 +74,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
     } else {
       serializeCode = switch (type) {
         case bool ->
-            String.format("return Filter.createMemCompFilter(%s, new byte[]{(byte) (%s ? 1 : 0});", offsetVarName, varName);
+            String.format("return Filter.createMemCompFilter(%s, new byte[]{(byte) (%s ? 1 : 0)});", offsetVarName, varName);
         case bytes -> String.format("""
             final byte[] _data = new byte[4 + %s.length];
             Borsh.write(%s, _data, i);

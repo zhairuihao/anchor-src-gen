@@ -5,6 +5,8 @@ import software.sava.core.borsh.RustEnum;
 import systems.comodal.jsoniter.JsonIterator;
 import systems.comodal.jsoniter.ValueType;
 
+import java.util.Map;
+
 import static software.sava.anchor.AnchorPrimitive.addParam;
 import static software.sava.anchor.AnchorType.*;
 
@@ -142,6 +144,13 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
     } else {
       return String.format((hasNext ? "i += Borsh.writeOptional(%s, _data, i);" : "Borsh.writeOptional(%s, _data, i);"), varName);
     }
+  }
+
+  @Override
+  public int fixedSerializedLength(final Map<String, AnchorNamedType> definedTypes) {
+    return 1 + (genericType.isFixedLength(definedTypes)
+        ? genericType.serializedLength(definedTypes)
+        : genericType.fixedSerializedLength(definedTypes));
   }
 
   @Override
