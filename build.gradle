@@ -43,13 +43,13 @@ ext {
   VERSION = getAppVersion()
   VCS_URL = 'https://github.com/sava-software/anchor-src-gen'
 
+  jsoniter = '2.11.0'
+
   bouncycastleMinor = 'jdk18on'
   bouncycastlePatch = '1.78.1' // https://www.bouncycastle.org/latest_releases.html#LATEST
 
-  jsoniter = '2.11.0'
-
-  sava = '1.3.1'
-  sava_solana_programs = '1.3.6'
+  sava = '1.4.2'
+  sava_solana_programs = '1.4.0'
 }
 
 apply plugin: 'java-library'
