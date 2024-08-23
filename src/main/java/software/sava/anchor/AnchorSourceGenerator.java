@@ -2,7 +2,6 @@ package software.sava.anchor;
 
 import software.sava.core.accounts.PublicKey;
 import software.sava.rpc.json.http.client.SolanaRpcClient;
-import systems.comodal.jsoniter.JsonIterator;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -36,7 +35,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
     return rpcClient.getAccountInfo(idlAddress, OnChainIDL.FACTORY)
         .thenApply(idlAccountInfo -> idlAccountInfo.data() == null
             ? null
-            : AnchorIDL.parseIDL(JsonIterator.parse(idlAccountInfo.data().json())));
+            : AnchorIDL.parseIDL(idlAccountInfo.data().json()));
   }
 
   public static CompletableFuture<AnchorIDL> fetchIDLForProgram(final PublicKey programAddress, final SolanaRpcClient rpcClient) {
@@ -47,7 +46,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
   public static CompletableFuture<AnchorIDL> fetchIDL(final HttpClient httpClient, final URI idlURL) {
     final var idlRequest = HttpRequest.newBuilder().uri(idlURL).GET().build();
     return httpClient.sendAsync(idlRequest, HttpResponse.BodyHandlers.ofByteArray())
-        .thenApply(response -> AnchorIDL.parseIDL(JsonIterator.parse(response.body())));
+        .thenApply(response -> AnchorIDL.parseIDL(response.body()));
   }
 
   private static void createDirectories(final Path path) {
@@ -81,6 +80,13 @@ public record AnchorSourceGenerator(Path sourceDirectory,
       fullSrcDir = fullSrcDir.resolve(pkgDirectory);
     }
     clearAndReCreateDirectory(fullSrcDir);
+
+    try {
+      Files.write(fullSrcDir.resolve("idl.json"), idl.json(), CREATE, TRUNCATE_EXISTING, WRITE);
+    } catch (final IOException e) {
+      throw new UncheckedIOException("Failed to write idl json file.", e);
+    }
+
     final var typesDir = fullSrcDir.resolve("types");
     final var typesPackage = packageName + ".types";
     createDirectories(typesDir);

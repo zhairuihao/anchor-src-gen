@@ -3,6 +3,7 @@ package software.sava.anchor;
 import systems.comodal.jsoniter.FieldBufferPredicate;
 import systems.comodal.jsoniter.JsonIterator;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,12 +21,17 @@ public record AnchorIDL(String version,
                         Map<String, AnchorNamedType> types,
                         List<AnchorNamedType> events,
                         List<AnchorError> errors,
-                        Map<String, String> metaData) {
+                        Map<String, String> metaData,
+                        byte[] json) {
 
-  public static AnchorIDL parseIDL(final JsonIterator ji) {
+  public static AnchorIDL parseIDL(final byte[] json) {
     final var parser = new Parser();
-    ji.testObject(parser);
-    return parser.createIDL();
+    try (final var ji = JsonIterator.parse(json)) {
+      ji.testObject(parser);
+      return parser.createIDL(json);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public String generateSource(final GenSrcContext genSrcContext) {
@@ -64,7 +70,7 @@ public record AnchorIDL(String version,
     private Parser() {
     }
 
-    private AnchorIDL createIDL() {
+    private AnchorIDL createIDL(final byte[] json) {
       return new AnchorIDL(
           version,
           name,
@@ -74,7 +80,8 @@ public record AnchorIDL(String version,
           types == null ? Map.of() : types,
           events == null ? List.of() : events,
           errors,
-          metaData
+          metaData,
+          json
       );
     }
 
