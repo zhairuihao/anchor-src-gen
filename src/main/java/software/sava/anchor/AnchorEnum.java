@@ -29,7 +29,7 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
 
   @Override
   public boolean isFixedLength(final Map<String, AnchorNamedType> definedTypes) {
-    return true;
+    return values.stream().noneMatch(t -> t.type() != null);
   }
 
   @Override
