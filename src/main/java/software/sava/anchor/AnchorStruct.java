@@ -238,10 +238,16 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
               
               public static final BiFunction<PublicKey, byte[], %s> FACTORY = %s::read;
               
-              public static %s read(final PublicKey _address, final byte[] _data, final int offset) {
-              %sfinal var discriminator = parseDiscriminator(_data, offset);
-              %sint i = offset + discriminator.length();""",
-          tab, name, tab, name, name, name, tab, tab).indent(tabLength));
+              public static %s read(final PublicKey _address, final byte[] _data, final int offset) {""",
+          tab, name, tab, name, name, name).indent(tabLength));
+      builder.append("""
+          if (_data == null || _data.length == 0) {""".indent(tabLength << 1));
+      builder.append(tab).append("""
+          return null;
+          }
+          final var discriminator = parseDiscriminator(_data, offset);
+          int i = offset + discriminator.length();""".indent(tabLength << 1)
+      );
       genSrcContext.addImport(BiFunction.class);
       genSrcContext.addImport(PublicKey.class);
       genSrcContext.addStaticImport(AnchorUtil.class, "parseDiscriminator");

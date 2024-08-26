@@ -48,8 +48,8 @@ ext {
   bouncycastleMinor = 'jdk18on'
   bouncycastlePatch = '1.78.1' // https://www.bouncycastle.org/latest_releases.html#LATEST
 
-  sava = '1.4.2'
-  sava_solana_programs = '1.4.0'
+  sava = '1.4.6'
+  sava_solana_programs = '1.4.5'
 }
 
 apply plugin: 'java-library'
