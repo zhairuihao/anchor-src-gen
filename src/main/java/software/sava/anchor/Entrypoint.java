@@ -232,7 +232,7 @@ public final class Entrypoint extends Thread {
 
       try (final var executor = Executors.newVirtualThreadPerTaskExecutor()) {
         try (final var httpClient = HttpClient.newBuilder().executor(executor).build()) {
-          final var rpcClient = SolanaRpcClient.createHttpClient(
+          final var rpcClient = SolanaRpcClient.createClient(
               rpcEndpoint == null || rpcEndpoint.isBlank() ? SolanaNetwork.MAIN_NET.getEndpoint() : URI.create(rpcEndpoint),
               httpClient
           );
