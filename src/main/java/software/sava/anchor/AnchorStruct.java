@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 import static software.sava.anchor.AnchorInstruction.replaceNewLinesIfLessThan;
-import static software.sava.anchor.AnchorNamedTypeParser.parseList;
+import static software.sava.anchor.AnchorNamedTypeParser.parseLowerList;
 import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static software.sava.anchor.AnchorType.string;
 import static software.sava.core.rpc.Filter.MAX_MEM_COMP_LENGTH;
@@ -22,7 +22,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
   private static final String LENGTH_ADD_ALIGN_TAB = " ".repeat("retur".length());
 
   static AnchorStruct parseStruct(final JsonIterator ji) {
-    return new AnchorStruct(parseList(ji));
+    return new AnchorStruct(parseLowerList(ji));
   }
 
   static String generateRecord(final GenSrcContext genSrcContext,

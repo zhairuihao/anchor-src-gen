@@ -2,14 +2,41 @@ package software.sava.anchor;
 
 import software.sava.core.borsh.Borsh;
 import software.sava.core.rpc.Filter;
+import systems.comodal.jsoniter.ContextFieldBufferPredicate;
 import systems.comodal.jsoniter.JsonIterator;
+import systems.comodal.jsoniter.ValueType;
 
 import java.util.Map;
+
+import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 
 public record AnchorDefined(String typeName) implements AnchorReferenceTypeContext {
 
   static AnchorDefined parseDefined(final JsonIterator ji) {
-    return new AnchorDefined(ji.readString());
+    return ji.whatIsNext() == ValueType.STRING
+        ? new AnchorDefined(AnchorUtil.camelCase(ji.readString(), true))
+        : ji.testObject(new Builder(), PARSER).create();
+  }
+
+  private static final ContextFieldBufferPredicate<Builder> PARSER = (builder, buf, offset, len, ji) -> {
+    if (fieldEquals("name", buf, offset, len)) {
+      builder.name = AnchorUtil.camelCase(ji.readString(), true);
+    } else {
+      throw new IllegalStateException("Unhandled defined type field " + new String(buf, offset, len));
+    }
+    return true;
+  };
+
+  private static final class Builder {
+
+    private String name;
+
+    private Builder() {
+    }
+
+    private AnchorDefined create() {
+      return new AnchorDefined(name);
+    }
   }
 
   @Override

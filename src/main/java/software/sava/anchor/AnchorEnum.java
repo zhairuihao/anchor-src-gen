@@ -7,14 +7,15 @@ import systems.comodal.jsoniter.JsonIterator;
 import java.util.List;
 import java.util.Map;
 
-import static software.sava.anchor.AnchorNamedTypeParser.parseList;
+import static software.sava.anchor.AnchorNamedTypeParser.parseLowerList;
+import static software.sava.anchor.AnchorNamedTypeParser.parseUpperList;
 import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static software.sava.anchor.AnchorStruct.generateRecord;
 
 public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedTypeContext {
 
   static AnchorEnum parseEnum(final JsonIterator ji) {
-    return new AnchorEnum(parseList(ji));
+    return new AnchorEnum(parseUpperList(ji));
   }
 
   @Override

@@ -1,5 +1,7 @@
 package software.sava.anchor;
 
+import software.sava.core.accounts.PublicKey;
+import software.sava.rpc.json.PublicKeyEncoding;
 import systems.comodal.jsoniter.JsonIterator;
 import systems.comodal.jsoniter.factory.ElementFactory;
 
@@ -14,35 +16,70 @@ final class AnchorAccountMetaParser implements ElementFactory<AnchorAccountMeta>
 
   static final Supplier<AnchorAccountMetaParser> FACTORY = AnchorAccountMetaParser::new;
 
+  private PublicKey address;
   private String name;
   private boolean isMut;
+  private boolean isOptional;
   private boolean isSigner;
   private List<String> docs;
+  private AnchorPDA pda;
+  private List<String> relations;
+  private List<AnchorAccountMeta> accounts;
 
   AnchorAccountMetaParser() {
   }
 
   @Override
   public AnchorAccountMeta create() {
-    return new AnchorAccountMeta(name, isMut, isSigner, docs == null ? NO_DOCS : docs);
+    return new AnchorAccountMeta(
+        accounts,
+        address,
+        name,
+        isMut,
+        isSigner,
+        docs == null ? NO_DOCS : docs,
+        isOptional,
+        pda,
+        relations
+    );
   }
 
   @Override
   public boolean test(final char[] buf, final int offset, final int len, final JsonIterator ji) {
-    if (fieldEquals("docs", buf, offset, len)) {
+    if (fieldEquals("accounts", buf, offset, len)) {
+      final var accounts = new ArrayList<AnchorAccountMeta>();
+      for (AnchorAccountMetaParser parser; ji.readArray(); ) {
+        parser = new AnchorAccountMetaParser();
+        ji.testObject(parser);
+        accounts.add(parser.create());
+      }
+      this.accounts = accounts;
+    } else if (fieldEquals("address", buf, offset, len)) {
+      this.address = PublicKeyEncoding.parseBase58Encoded(ji);
+    } else if (fieldEquals("docs", buf, offset, len)) {
       final var docs = new ArrayList<String>();
       while (ji.readArray()) {
         docs.add(ji.readString());
       }
       this.docs = docs;
-    } else if (fieldEquals("isMut", buf, offset, len)) {
+    } else if (fieldEquals("isMut", buf, offset, len) || fieldEquals("writable", buf, offset, len)) {
       this.isMut = ji.readBoolean();
-    } else if (fieldEquals("isSigner", buf, offset, len)) {
+    } else if (fieldEquals("isOptional", buf, offset, len)) {
+      this.isOptional = ji.readBoolean();
+    } else if (fieldEquals("isSigner", buf, offset, len) || fieldEquals("signer", buf, offset, len)) {
       this.isSigner = ji.readBoolean();
     } else if (fieldEquals("name", buf, offset, len)) {
-      this.name = ji.readString();
+      this.name = AnchorUtil.camelCase(ji.readString(), false);
+    } else if (fieldEquals("pda", buf, offset, len)) {
+      this.pda = AnchorPDA.parsePDA(ji);
+    } else if (fieldEquals("relations", buf, offset, len)) {
+      final var relations = new ArrayList<String>();
+      while (ji.readArray()) {
+        relations.add(ji.readString());
+      }
+      this.relations = relations;
     } else {
-      ji.skip();
+      throw new IllegalStateException("Unhandled AnchorAccountMeta field " + new String(buf, offset, len));
     }
     return true;
   }

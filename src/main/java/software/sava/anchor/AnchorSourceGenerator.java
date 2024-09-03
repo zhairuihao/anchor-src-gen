@@ -11,10 +11,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -33,9 +30,15 @@ public record AnchorSourceGenerator(Path sourceDirectory,
 
   public static CompletableFuture<AnchorIDL> fetchIDL(final PublicKey idlAddress, final SolanaRpcClient rpcClient) {
     return rpcClient.getAccountInfo(idlAddress, OnChainIDL.FACTORY)
-        .thenApply(idlAccountInfo -> idlAccountInfo.data() == null
-            ? null
-            : AnchorIDL.parseIDL(idlAccountInfo.data().json()));
+        .thenApply(idlAccountInfo -> {
+          final var idl = idlAccountInfo.data();
+          if (idl == null) {
+            return null;
+          } else {
+            final byte[] json = idl.json();
+            return AnchorIDL.parseIDL(json);
+          }
+        });
   }
 
   public static CompletableFuture<AnchorIDL> fetchIDLForProgram(final PublicKey programAddress, final SolanaRpcClient rpcClient) {
@@ -104,7 +107,13 @@ public record AnchorSourceGenerator(Path sourceDirectory,
       throw new UncheckedIOException("Failed to write source code file.", e);
     }
 
-    for (final var namedType : idl.accounts()) {
+    final var types = idl.types();
+    final var accounts = new HashSet<String>();
+    for (final var account : idl.accounts()) {
+      final var namedType = account.type() == null
+          ? types.get(account.name())
+          : account;
+      accounts.add(namedType.name());
       genSrcContext.clearImports();
       if (namedType.type() instanceof AnchorStruct struct) {
         final var sourceCode = struct.generateSource(genSrcContext, genSrcContext.typePackage(), namedType, true);
@@ -119,6 +128,9 @@ public record AnchorSourceGenerator(Path sourceDirectory,
     }
 
     for (final var namedType : idl.types().values()) {
+      if (accounts.contains(namedType.name())) {
+        continue;
+      }
       genSrcContext.clearImports();
       final String sourceCode;
       if (namedType.type() instanceof AnchorStruct struct) {

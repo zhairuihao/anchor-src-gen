@@ -2,6 +2,7 @@ package software.sava.anchor;
 
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.programs.Discriminator;
+import systems.comodal.jsoniter.JsonIterator;
 
 import java.util.List;
 
@@ -44,6 +45,14 @@ public final class AnchorUtil {
 
   public static Discriminator parseDiscriminator(final byte[] data) {
     return parseDiscriminator(data, 0);
+  }
+
+  public static Discriminator parseDiscriminator(final JsonIterator ji) {
+    final byte[] discriminator = new byte[AnchorUtil.DISCRIMINATOR_LENGTH];
+    for (int i = 0; ji.readArray(); ++i) {
+      discriminator[i] = (byte) ji.readInt();
+    }
+    return Discriminator.createDiscriminator(discriminator);
   }
 
   public static Discriminator toDiscriminator(final String namespace, final String name) {

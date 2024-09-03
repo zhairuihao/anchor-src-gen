@@ -12,7 +12,10 @@ import java.util.stream.Collectors;
 import static java.util.Locale.ENGLISH;
 import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 
-public record AnchorInstruction(String name, List<AnchorAccountMeta> accounts, List<AnchorNamedType> args) {
+public record AnchorInstruction(Discriminator discriminator,
+                                String name,
+                                List<AnchorAccountMeta> accounts,
+                                List<AnchorNamedType> args) {
 
   static String replaceNewLinesIfLessThan(final String lines, final int numLines, final int limit) {
     return numLines < limit ? lines.replaceAll("\n +", " ") : lines;

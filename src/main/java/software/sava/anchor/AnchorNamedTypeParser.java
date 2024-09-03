@@ -1,5 +1,6 @@
 package software.sava.anchor;
 
+import software.sava.core.programs.Discriminator;
 import systems.comodal.jsoniter.CharBufferFunction;
 import systems.comodal.jsoniter.JsonIterator;
 import systems.comodal.jsoniter.ValueType;
@@ -14,19 +15,28 @@ import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 
 final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, CharBufferFunction<AnchorNamedType> {
 
-  static final Supplier<AnchorNamedTypeParser> FACTORY = AnchorNamedTypeParser::new;
+  static final Supplier<AnchorNamedTypeParser> UPPER_FACTORY = () -> new AnchorNamedTypeParser(true);
+  static final Supplier<AnchorNamedTypeParser> LOWER_FACTORY = () -> new AnchorNamedTypeParser(false);
 
+  private final boolean firstUpper;
+  private Discriminator discriminator;
   private String name;
   private AnchorTypeContext type;
   private List<String> docs;
   private boolean index;
 
-  AnchorNamedTypeParser() {
+  AnchorNamedTypeParser(final boolean firstUpper) {
+    this.firstUpper = firstUpper;
   }
 
-  static List<AnchorNamedType> parseList(final JsonIterator ji) {
+  static List<AnchorNamedType> parseLowerList(final JsonIterator ji) {
     ji.skipObjField();
-    return ElementFactory.parseList(ji, AnchorNamedTypeParser.FACTORY);
+    return ElementFactory.parseList(ji, LOWER_FACTORY);
+  }
+
+  static List<AnchorNamedType> parseUpperList(final JsonIterator ji) {
+    ji.skipObjField();
+    return ElementFactory.parseList(ji, UPPER_FACTORY);
   }
 
   private static AnchorTypeContext parseTypeContext(final JsonIterator ji) {
@@ -44,23 +54,26 @@ final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, Ch
 
   @Override
   public AnchorNamedType create() {
-    return AnchorNamedType.createType(name, type, docs, index);
+    return AnchorNamedType.createType(discriminator, name, type, docs, index);
   }
+
 
   @Override
   public boolean test(final char[] buf, final int offset, final int len, final JsonIterator ji) {
-    if (fieldEquals("docs", buf, offset, len)) {
+    if (fieldEquals("discriminator", buf, offset, len)) {
+      this.discriminator = AnchorUtil.parseDiscriminator(ji);
+    } else if (fieldEquals("docs", buf, offset, len)) {
       final var docs = new ArrayList<String>();
       while (ji.readArray()) {
         docs.add(ji.readString());
       }
       this.docs = docs;
     } else if (fieldEquals("fields", buf, offset, len)) {
-      this.type = new AnchorTypeContextList(ElementFactory.parseList(ji, AnchorNamedTypeParser.FACTORY, this));
+      this.type = new AnchorTypeContextList(ElementFactory.parseList(ji, LOWER_FACTORY, this));
     } else if (fieldEquals("index", buf, offset, len)) {
       this.index = ji.readBoolean();
     } else if (fieldEquals("name", buf, offset, len)) {
-      this.name = ji.readString();
+      this.name = AnchorUtil.camelCase(ji.readString(), firstUpper);
       // System.out.println(name);
     } else if (fieldEquals("option", buf, offset, len)) {
       this.type = new AnchorOption(parseTypeContext(ji));
@@ -76,6 +89,6 @@ final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, Ch
   @Override
   public AnchorNamedType apply(final char[] chars, final int offset, final int len) {
     final var primitiveType = ANCHOR_TYPE_PARSER.apply(chars, offset, len).primitiveType();
-    return AnchorNamedType.createType(null, primitiveType);
+    return AnchorNamedType.createType(null, null, primitiveType);
   }
 }

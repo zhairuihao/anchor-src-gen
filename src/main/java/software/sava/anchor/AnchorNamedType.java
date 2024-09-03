@@ -1,10 +1,13 @@
 package software.sava.anchor;
 
+import software.sava.core.programs.Discriminator;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public record AnchorNamedType(String name,
+public record AnchorNamedType(Discriminator discriminator,
+                              String name,
                               AnchorTypeContext type,
                               List<String> docs,
                               boolean index) {
@@ -14,14 +17,16 @@ public record AnchorNamedType(String name,
       "new"
   );
 
-  public static AnchorNamedType createType(final String name,
+  public static AnchorNamedType createType(final Discriminator discriminator,
+                                           final String name,
                                            final AnchorTypeContext type,
                                            final List<String> docs,
                                            final boolean index) {
     if (name == null) {
-      return new AnchorNamedType('_' + type.type().name(), type, docs, index);
+      return new AnchorNamedType(discriminator, '_' + type.type().name(), type, docs, index);
     } else {
       return new AnchorNamedType(
+          discriminator,
           RESERVED_NAMES.contains(name) ? '_' + name : name,
           type,
           docs == null ? NO_DOCS : docs,
@@ -30,8 +35,10 @@ public record AnchorNamedType(String name,
     }
   }
 
-  public static AnchorNamedType createType(final String name, final AnchorTypeContext type) {
-    return createType(name, type, NO_DOCS, false);
+  public static AnchorNamedType createType(final Discriminator discriminator,
+                                           final String name,
+                                           final AnchorTypeContext type) {
+    return createType(discriminator, name, type, NO_DOCS, false);
   }
 
   public String docComments() {

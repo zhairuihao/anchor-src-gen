@@ -119,7 +119,7 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
     return generateRecord(
         genSrcContext,
         enumName,
-        List.of(AnchorNamedType.createType("val", this)),
+        List.of(AnchorNamedType.createType(null, "val", this)),
         "",
         enumTypeName,
         ordinal

@@ -81,7 +81,7 @@ public enum AnchorType {
       return f64;
     } else if (fieldEquals("option", buf, offset, len)) {
       return option;
-    } else if (fieldEquals("publicKey", buf, offset, len)) {
+    } else if (fieldEquals("pubkey", buf, offset, len) || fieldEquals("publicKey", buf, offset, len)) {
       return publicKey;
     } else if (fieldEquals("string", buf, offset, len)) {
       return string;

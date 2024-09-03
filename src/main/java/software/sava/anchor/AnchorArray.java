@@ -190,7 +190,7 @@ public record AnchorArray(AnchorTypeContext genericType,
     return generateRecord(
         genSrcContext,
         enumName,
-        List.of(AnchorNamedType.createType("val", this)),
+        List.of(AnchorNamedType.createType(null, "val", this)),
         "",
         enumTypeName,
         ordinal

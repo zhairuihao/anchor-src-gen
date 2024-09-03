@@ -72,8 +72,8 @@ public record AnchorIDL(String version,
 
     private AnchorIDL createIDL(final byte[] json) {
       return new AnchorIDL(
-          version,
-          name,
+          version == null ? metaData.get("version") : version,
+          name == null ? metaData.get("name") : name,
           constants,
           instructions,
           accounts == null ? List.of() : accounts,
@@ -96,14 +96,14 @@ public record AnchorIDL(String version,
       } else if (fieldEquals("instructions", buf, offset, len)) {
         this.instructions = parseList(ji, AnchorInstructionParser.FACTORY);
       } else if (fieldEquals("accounts", buf, offset, len)) {
-        this.accounts = parseList(ji, AnchorNamedTypeParser.FACTORY);
+        this.accounts = parseList(ji, AnchorNamedTypeParser.UPPER_FACTORY);
       } else if (fieldEquals("types", buf, offset, len)) {
-        this.types = parseList(ji, AnchorNamedTypeParser.FACTORY).stream()
+        this.types = parseList(ji, AnchorNamedTypeParser.UPPER_FACTORY).stream()
             .collect(Collectors.toUnmodifiableMap(AnchorNamedType::name, Function.identity()));
       } else if (fieldEquals("events", buf, offset, len)) {
-        this.events = parseList(ji, AnchorNamedTypeParser.FACTORY).stream()
+        this.events = parseList(ji, AnchorNamedTypeParser.UPPER_FACTORY).stream()
             .map(nt -> nt.type() instanceof AnchorTypeContextList list
-                ? new AnchorNamedType(nt.name(), new AnchorStruct(list.fields()), nt.docs(), nt.index())
+                ? new AnchorNamedType(null, nt.name(), new AnchorStruct(list.fields()), nt.docs(), nt.index())
                 : nt)
             .toList();
       } else if (fieldEquals("errors", buf, offset, len)) {
