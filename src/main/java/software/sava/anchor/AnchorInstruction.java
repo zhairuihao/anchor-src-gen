@@ -7,6 +7,7 @@ import software.sava.core.tx.Instruction;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Locale.ENGLISH;
@@ -97,17 +98,41 @@ public record AnchorInstruction(Discriminator discriminator,
     if (accounts.isEmpty()) {
       createKeysBuilder.append("AccountMeta.NO_KEYS;\n\n");
     } else {
+      final var knownAccounts = genSrcContext.accountMethods();
+      final var knownAccountClasses = accounts.stream()
+          .map(AnchorAccountMeta::address)
+          .map(knownAccounts::get)
+          .filter(Objects::nonNull)
+          .map(AccountReferenceCall::clas)
+          .collect(Collectors.toSet());
+      if (!knownAccountClasses.isEmpty()) {
+        for (final var accountsClas : knownAccountClasses) {
+          keyParamsBuilder.append(String.format("""
+              final %s %s,
+              """, accountsClas.getSimpleName(), AnchorUtil.camelCase(accountsClas.getSimpleName(), false)));
+          genSrcContext.addImport(accountsClas);
+        }
+      }
+
       accounts.stream()
+          .filter(account -> !knownAccounts.containsKey(account.address()))
           .peek(context -> keyParamsBuilder.append(context.docComments()))
           .map(AnchorInstruction::formatKeyName)
           .forEach(name -> keyParamsBuilder.append("final PublicKey ").append(name).append(",\n"));
+
       genSrcContext.addImport(PublicKey.class);
       genSrcContext.addImport(List.class);
       createKeysBuilder.append("List.of(");
       final var accountsIterator = accounts.iterator();
       for (AnchorAccountMeta accountMeta; ; ) {
         accountMeta = accountsIterator.next();
-        final var varName = accountMeta.name().endsWith("Key") || accountMeta.name().endsWith("key") ? accountMeta.name() : accountMeta.name() + "Key";
+        final var knowAccount = knownAccounts.get(accountMeta.address());
+        String varName;
+        if (knowAccount != null) {
+          varName = knowAccount.callReference();
+        } else {
+          varName = accountMeta.name().endsWith("Key") || accountMeta.name().endsWith("key") ? accountMeta.name() : accountMeta.name() + "Key";
+        }
         final String append;
         if (accountMeta.isSigner()) {
           if (accountMeta.isMut()) {

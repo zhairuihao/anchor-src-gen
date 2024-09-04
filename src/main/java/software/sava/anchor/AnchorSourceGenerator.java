@@ -98,7 +98,18 @@ public record AnchorSourceGenerator(Path sourceDirectory,
     final var tab = " ".repeat(tabLength);
     final var imports = new TreeSet<String>();
     final var staticImports = new TreeSet<String>();
-    final var genSrcContext = new GenSrcContext(idl.types(), imports, staticImports, tab, packageName, typesPackage, programName);
+    final var accountMethods = HashMap.<PublicKey, AccountReferenceCall>newHashMap(1_024);
+    AccountReferenceCall.generateMainNetNativeAccounts(accountMethods);
+    final var genSrcContext = new GenSrcContext(
+        idl.types(),
+        imports,
+        staticImports,
+        tab,
+        packageName,
+        typesPackage,
+        programName,
+        accountMethods
+    );
 
     final var programSource = idl.generateSource(genSrcContext);
     try {

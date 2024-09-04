@@ -1,5 +1,7 @@
 package software.sava.anchor;
 
+import software.sava.core.accounts.PublicKey;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
@@ -10,7 +12,8 @@ public record GenSrcContext(Map<String, AnchorNamedType> definedTypes,
                             String tab,
                             String srcPackage,
                             String typePackage,
-                            String programName) {
+                            String programName,
+                            Map<PublicKey, AccountReferenceCall> accountMethods) {
 
   private static String getPackageGroup(final String importLine) {
     int i = importLine.indexOf('.');
