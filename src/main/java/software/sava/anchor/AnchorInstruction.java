@@ -55,7 +55,17 @@ public record AnchorInstruction(Discriminator discriminator,
             String.format("  public static final Discriminator %s = toDiscriminator(", formatDiscriminatorReference(ixName)), ");"));
   }
 
-  private static String formatDiscriminator(final String ixName, final Discriminator discriminator) {
+  static int[] toIntArray(final Discriminator discriminator) {
+    final byte[] data = discriminator.data();
+    final int[] d = new int[data.length];
+    for (int i = 0; i < d.length; ++i) {
+      d[i] = data[i] & 0xff;
+    }
+    return d;
+  }
+
+  static String formatDiscriminator(final String ixName,
+                                    final Discriminator discriminator) {
     final byte[] data = discriminator.data();
     final int[] d = new int[data.length];
     for (int i = 0; i < d.length; ++i) {
@@ -67,10 +77,11 @@ public record AnchorInstruction(Discriminator discriminator,
   public String generateFactorySource(final GenSrcContext genSrcContext, final String parentTab) {
     final var tab = genSrcContext.tab();
     final var builder = new StringBuilder(2_048);
-    builder.append(formatDiscriminator(name, AnchorUtil.toDiscriminator(name)));
-    builder.append("\n\n");
+
     genSrcContext.addImport(Discriminator.class);
     genSrcContext.addStaticImport(Discriminator.class, "toDiscriminator");
+    builder.append(formatDiscriminator(name, discriminator == null ? AnchorUtil.toDiscriminator(name) : discriminator));
+    builder.append("\n\n");
 
     final var keyParamsBuilder = new StringBuilder(1_024);
     final var programMetaReference = String.format("invoked%sProgramMeta", genSrcContext.programName());

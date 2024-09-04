@@ -6,12 +6,15 @@ import software.sava.core.programs.Discriminator;
 import software.sava.core.rpc.Filter;
 import systems.comodal.jsoniter.JsonIterator;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import static software.sava.anchor.AnchorInstruction.replaceNewLinesIfLessThan;
+import static software.sava.anchor.AnchorInstruction.toIntArray;
 import static software.sava.anchor.AnchorNamedTypeParser.parseLowerList;
 import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static software.sava.anchor.AnchorType.string;
@@ -31,7 +34,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
                                final String recordAccessModifier,
                                final String interfaceName,
                                final int ordinal) {
-    return generateRecord(genSrcContext, context, fields, recordAccessModifier, interfaceName, ordinal, false);
+    return generateRecord(genSrcContext, context, fields, recordAccessModifier, interfaceName, ordinal, false, null);
   }
 
   static String generateRecord(final GenSrcContext genSrcContext,
@@ -40,7 +43,8 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
                                final String recordAccessModifier,
                                final String interfaceName,
                                final int ordinal,
-                               final boolean isAccount) {
+                               final boolean isAccount,
+                               final AnchorNamedType account) {
     final var tab = genSrcContext.tab();
     final int tabLength = tab.length();
     final var builder = new StringBuilder(4_096);
@@ -157,6 +161,24 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
             """);
         genSrcContext.addImport(Filter.class);
       }
+
+      final var discriminator = account.discriminator();
+      if (discriminator != null) {
+        genSrcContext.addImport(Filter.class);
+        genSrcContext.addImport(Discriminator.class);
+        genSrcContext.addStaticImport(Discriminator.class, "toDiscriminator");
+
+        final var discriminatorLine = Arrays.stream(toIntArray(discriminator))
+            .mapToObj(Integer::toString)
+            .collect(Collectors.joining(", ",
+                "public static final Discriminator DISCRIMINATOR = toDiscriminator(", ");"));
+        builder.append(tab).append(discriminatorLine);
+        builder.append("\n").append(tab).append("""
+            public static final Filter DISCRIMINATOR_FILTER = Filter.createMemCompFilter(0, DISCRIMINATOR.data());
+            
+            """);
+      }
+
       if (!offsetsBuilder.isEmpty()) {
         builder.append(offsetsBuilder.toString().indent(tabLength));
         builder.append(memCompFiltersBuilder.toString().indent(tabLength)).append('\n');
@@ -356,8 +378,9 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
   static String generatePublicRecord(final GenSrcContext genSrcContext,
                                      final AnchorNamedType context,
                                      final List<AnchorNamedType> fields,
-                                     final boolean isAccount) {
-    return generateRecord(genSrcContext, context, fields, "public", "Borsh", -1, isAccount);
+                                     final boolean isAccount,
+                                     final AnchorNamedType account) {
+    return generateRecord(genSrcContext, context, fields, "public", "Borsh", -1, isAccount, account);
   }
 
   @Override
@@ -406,13 +429,14 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
   public String generateSource(final GenSrcContext genSrcContext,
                                final String packageName,
                                final AnchorNamedType context,
-                               final boolean isAccount) {
+                               final boolean isAccount,
+                               final AnchorNamedType account) {
     final var builder = new StringBuilder(4_096);
     builder.append("package ").append(packageName).append(";\n\n");
 
     genSrcContext.addImport(Borsh.class);
 
-    final var recordSource = generatePublicRecord(genSrcContext, context, fields, isAccount);
+    final var recordSource = generatePublicRecord(genSrcContext, context, fields, isAccount, account);
 
     genSrcContext.appendImports(builder);
 

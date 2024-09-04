@@ -116,7 +116,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
       accounts.add(namedType.name());
       genSrcContext.clearImports();
       if (namedType.type() instanceof AnchorStruct struct) {
-        final var sourceCode = struct.generateSource(genSrcContext, genSrcContext.typePackage(), namedType, true);
+        final var sourceCode = struct.generateSource(genSrcContext, genSrcContext.typePackage(), namedType, true, account);
         try {
           Files.writeString(typesDir.resolve(namedType.name() + ".java"), sourceCode, CREATE, TRUNCATE_EXISTING, WRITE);
         } catch (final IOException e) {
@@ -134,7 +134,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
       genSrcContext.clearImports();
       final String sourceCode;
       if (namedType.type() instanceof AnchorStruct struct) {
-        sourceCode = struct.generateSource(genSrcContext, genSrcContext.typePackage(), namedType, false);
+        sourceCode = struct.generateSource(genSrcContext, genSrcContext.typePackage(), namedType, false, null);
       } else if (namedType.type() instanceof AnchorEnum anchorEnum) {
         sourceCode = anchorEnum.generateSource(genSrcContext, namedType);
       } else {
@@ -151,7 +151,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
       genSrcContext.clearImports();
       try {
         if (namedType.type() instanceof AnchorStruct struct) {
-          final var sourceCode = struct.generateSource(genSrcContext, genSrcContext.typePackage(), namedType, false);
+          final var sourceCode = struct.generateSource(genSrcContext, genSrcContext.typePackage(), namedType, false, null);
           Files.writeString(typesDir.resolve(namedType.name() + ".java"), sourceCode, CREATE, TRUNCATE_EXISTING, WRITE);
         } else {
           throw new IllegalStateException("Unexpected anchor defined type " + namedType.type());
