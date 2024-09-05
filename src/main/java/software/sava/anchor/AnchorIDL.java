@@ -52,6 +52,10 @@ public record AnchorIDL(String version,
       }
     }
 
+    if (pdaAccounts.isEmpty()) {
+      return null;
+    }
+
     final var pdaBuilder = new StringBuilder(4_096);
     pdaAccounts.forEach((name, pda) -> {
       pda.genSrc(genSrcContext, name, pdaBuilder);

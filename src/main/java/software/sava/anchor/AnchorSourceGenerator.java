@@ -120,10 +120,12 @@ public record AnchorSourceGenerator(Path sourceDirectory,
 
     genSrcContext.clearImports();
     final var pdaSource = idl.generatePDASource(genSrcContext);
-    try {
-      Files.writeString(fullSrcDir.resolve(programName + "PDAs.java"), pdaSource, CREATE, TRUNCATE_EXISTING, WRITE);
-    } catch (final IOException e) {
-      throw new UncheckedIOException("Failed to write source code file.", e);
+    if (pdaSource != null && !pdaSource.isBlank()) {
+      try {
+        Files.writeString(fullSrcDir.resolve(programName + "PDAs.java"), pdaSource, CREATE, TRUNCATE_EXISTING, WRITE);
+      } catch (final IOException e) {
+        throw new UncheckedIOException("Failed to write source code file.", e);
+      }
     }
 
     final var types = idl.types();
