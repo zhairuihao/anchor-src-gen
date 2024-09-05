@@ -118,6 +118,14 @@ public record AnchorSourceGenerator(Path sourceDirectory,
       throw new UncheckedIOException("Failed to write source code file.", e);
     }
 
+    genSrcContext.clearImports();
+    final var pdaSource = idl.generatePDASource(genSrcContext);
+    try {
+      Files.writeString(fullSrcDir.resolve(programName + "PDAs.java"), pdaSource, CREATE, TRUNCATE_EXISTING, WRITE);
+    } catch (final IOException e) {
+      throw new UncheckedIOException("Failed to write source code file.", e);
+    }
+
     final var types = idl.types();
     final var accounts = new HashSet<String>();
     for (final var account : idl.accounts()) {

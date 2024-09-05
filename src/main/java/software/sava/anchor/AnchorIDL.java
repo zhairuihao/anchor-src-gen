@@ -1,12 +1,12 @@
 package software.sava.anchor;
 
+import software.sava.core.accounts.ProgramDerivedAddress;
+import software.sava.core.accounts.PublicKey;
 import systems.comodal.jsoniter.FieldBufferPredicate;
 import systems.comodal.jsoniter.JsonIterator;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -34,26 +34,84 @@ public record AnchorIDL(String version,
     }
   }
 
-  public String generateSource(final GenSrcContext genSrcContext) {
-    final var ixBuilder = new StringBuilder();
-    for (final var ix : instructions()) {
-      ixBuilder.append('\n').append(ix.generateFactorySource(genSrcContext, "  "));
+  public String generatePDASource(final GenSrcContext genSrcContext) {
+    final var pdaAccounts = new TreeMap<String, AnchorPDA>();
+    final var distinct = new HashSet<AnchorPDA>();
+    for (final var ix : instructions) {
+      for (final var account : ix.accounts()) {
+        final var pda = account.pda();
+        if (pda != null) {
+          var previous = pdaAccounts.putIfAbsent(account.name(), pda);
+          if (previous != null && !distinct.contains(pda)) {
+            for (int i = 1; previous != null; ++i) {
+              previous = pdaAccounts.putIfAbsent(account.name() + i, pda);
+            }
+          }
+          distinct.add(pda);
+        }
+      }
     }
 
-    final var builder = new StringBuilder(ixBuilder.length() << 1);
-    builder.append("package ").append(genSrcContext.srcPackage()).append(";\n\n");
+    final var pdaBuilder = new StringBuilder(4_096);
+    pdaAccounts.forEach((name, pda) -> {
+      pda.genSrc(genSrcContext, name, pdaBuilder);
+      pdaBuilder.append('\n');
+    });
+
+    final var out = new StringBuilder(pdaBuilder.length() << 1);
+    genSrcContext.appendPackage(out);
+
+    genSrcContext.addImport(ProgramDerivedAddress.class);
+    genSrcContext.addImport(PublicKey.class);
+    genSrcContext.addImport(List.class);
+    genSrcContext.appendImports(out);
+
+    final var className = genSrcContext.programName() + "PDAs";
+    out.append(String.format("""
+        
+        public final class %s {
+        
+        """, className));
+    out.append(pdaBuilder);
+    return closeClass(genSrcContext, className, out);
+  }
+
+  public String generateSource(final GenSrcContext genSrcContext) {
+    final var pdaAccounts = HashMap.newHashMap(instructions.size() << 1);
+    final var ixBuilder = new StringBuilder();
+    for (final var ix : instructions) {
+      ixBuilder.append('\n').append(ix.generateFactorySource(genSrcContext, "  "));
+      for (final var account : ix.accounts()) {
+        final var pda = account.pda();
+        if (pda != null) {
+          pdaAccounts.put(account.name(), pda);
+        }
+      }
+    }
+
+    final var builder = new StringBuilder(4_096);
+    genSrcContext.appendPackage(builder);
 
     genSrcContext.appendImports(builder);
 
     final var className = genSrcContext.programName() + "Program";
-    builder.append(String.format("\npublic final class %s {", className));
-    builder.append('\n').append(ixBuilder);
     builder.append(String.format("""
         
+        public final class %s {
+        """, className));
+    builder.append(ixBuilder).append('\n');
+    return closeClass(genSrcContext, className, builder);
+  }
+
+  private String closeClass(final GenSrcContext genSrcContext,
+                            final String className,
+                            final StringBuilder builder) {
+    builder.append(String.format("""
         private %s() {
         }""", className).indent(genSrcContext.tabLength()));
     return builder.append('}').toString();
   }
+
 
   private static final class Parser implements FieldBufferPredicate {
 

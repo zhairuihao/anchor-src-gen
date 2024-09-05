@@ -49,30 +49,11 @@ public record AnchorInstruction(Discriminator discriminator,
     return String.format("%s_DISCRIMINATOR", AnchorUtil.snakeCase(ixName).toUpperCase(ENGLISH));
   }
 
-  private static String formatDiscriminator(final String ixName, final int[] discriminator) {
-    return Arrays.stream(discriminator)
+  private static String formatDiscriminator(final String ixName, final Discriminator discriminator) {
+    return Arrays.stream(discriminator.toIntArray())
         .mapToObj(Integer::toString)
         .collect(Collectors.joining(", ",
             String.format("  public static final Discriminator %s = toDiscriminator(", formatDiscriminatorReference(ixName)), ");"));
-  }
-
-  static int[] toIntArray(final Discriminator discriminator) {
-    final byte[] data = discriminator.data();
-    final int[] d = new int[data.length];
-    for (int i = 0; i < d.length; ++i) {
-      d[i] = data[i] & 0xff;
-    }
-    return d;
-  }
-
-  static String formatDiscriminator(final String ixName,
-                                    final Discriminator discriminator) {
-    final byte[] data = discriminator.data();
-    final int[] d = new int[data.length];
-    for (int i = 0; i < d.length; ++i) {
-      d[i] = data[i] & 0xff;
-    }
-    return formatDiscriminator(ixName, d);
   }
 
   public String generateFactorySource(final GenSrcContext genSrcContext, final String parentTab) {
@@ -134,15 +115,15 @@ public record AnchorInstruction(Discriminator discriminator,
           varName = accountMeta.name().endsWith("Key") || accountMeta.name().endsWith("key") ? accountMeta.name() : accountMeta.name() + "Key";
         }
         final String append;
-        if (accountMeta.isSigner()) {
-          if (accountMeta.isMut()) {
+        if (accountMeta.signer()) {
+          if (accountMeta.writable()) {
             append = String.format("createWritableSigner(%s)", varName);
             genSrcContext.addStaticImport(AccountMeta.class, "createWritableSigner");
           } else {
             append = String.format("createReadOnlySigner(%s)", varName);
             genSrcContext.addStaticImport(AccountMeta.class, "createReadOnlySigner");
           }
-        } else if (accountMeta.isMut()) {
+        } else if (accountMeta.writable()) {
           append = String.format("createWrite(%s)", varName);
           genSrcContext.addStaticImport(AccountMeta.class, "createWrite");
         } else {

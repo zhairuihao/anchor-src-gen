@@ -29,6 +29,10 @@ public record GenSrcContext(Map<String, AnchorNamedType> definedTypes,
     return tab.length();
   }
 
+  public void appendPackage(final StringBuilder builder) {
+    builder.append("package ").append(srcPackage).append(";\n\n");
+  }
+
   public void clearImports() {
     imports.clear();
     staticImports.clear();

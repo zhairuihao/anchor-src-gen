@@ -14,7 +14,6 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static software.sava.anchor.AnchorInstruction.replaceNewLinesIfLessThan;
-import static software.sava.anchor.AnchorInstruction.toIntArray;
 import static software.sava.anchor.AnchorNamedTypeParser.parseLowerList;
 import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static software.sava.anchor.AnchorType.string;
@@ -168,7 +167,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
         genSrcContext.addImport(Discriminator.class);
         genSrcContext.addStaticImport(Discriminator.class, "toDiscriminator");
 
-        final var discriminatorLine = Arrays.stream(toIntArray(discriminator))
+        final var discriminatorLine = Arrays.stream(discriminator.toIntArray())
             .mapToObj(Integer::toString)
             .collect(Collectors.joining(", ",
                 "public static final Discriminator DISCRIMINATOR = toDiscriminator(", ");"));

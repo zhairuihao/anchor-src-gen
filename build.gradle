@@ -99,7 +99,6 @@ dependencies {
   implementation libs.json.iterator
   implementation libs.sava.core
   implementation libs.sava.rpc
-  implementation libs.sava.solana.programs
 
   testImplementation libs.junit.jupiter
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
