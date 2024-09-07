@@ -2,6 +2,12 @@
 
 # Anchor Source Generator [![Build](https://github.com/sava-software/anchor-src-gen/actions/workflows/gradle.yml/badge.svg)](https://github.com/sava-software/anchor-src-gen/actions/workflows/gradle.yml) [![Release](https://github.com/sava-software/anchor-src-gen/actions/workflows/release.yml/badge.svg)](https://github.com/sava-software/anchor-src-gen/actions/workflows/release.yml)
 
+## Generated Program Library
+
+Repositories that hold program SDK's generated using this library.
+
+- [sava-software/anchor-programs](https://github.com/sava-software/anchor-programs/tree/main/programs/src/main/java/software/sava/anchor/programs)
+
 ## Generate Source
 
 Replace the values below to fit your needs.
