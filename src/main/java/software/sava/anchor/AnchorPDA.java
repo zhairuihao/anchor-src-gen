@@ -5,7 +5,10 @@ import systems.comodal.jsoniter.CharBufferFunction;
 import systems.comodal.jsoniter.FieldBufferPredicate;
 import systems.comodal.jsoniter.JsonIterator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static software.sava.core.accounts.PublicKey.PUBLIC_KEY_LENGTH;
@@ -21,12 +24,14 @@ public record AnchorPDA(List<Seed> seeds, PublicKey program) {
 
   public sealed interface Seed permits AccountSeed, ArgSeed, ConstSeed {
 
+    int index();
+
     String varName(final GenSrcContext genSrcContext);
 
-    String fieldName();
+    String fieldName(final GenSrcContext genSrcContext);
   }
 
-  public record AccountSeed(String path, String camelPath) implements Seed {
+  public record AccountSeed(int index, String path, String camelPath) implements Seed {
 
     @Override
     public String varName(final GenSrcContext genSrcContext) {
@@ -34,7 +39,7 @@ public record AnchorPDA(List<Seed> seeds, PublicKey program) {
     }
 
     @Override
-    public String fieldName() {
+    public String fieldName(final GenSrcContext genSrcContext) {
       return "final PublicKey " + camelPath + "Account";
     }
 
@@ -54,7 +59,7 @@ public record AnchorPDA(List<Seed> seeds, PublicKey program) {
     }
   }
 
-  public record ArgSeed(String path, String camelPath) implements Seed {
+  public record ArgSeed(int index, String path, String camelPath) implements Seed {
 
     @Override
     public String varName(final GenSrcContext genSrcContext) {
@@ -62,7 +67,7 @@ public record AnchorPDA(List<Seed> seeds, PublicKey program) {
     }
 
     @Override
-    public String fieldName() {
+    public String fieldName(final GenSrcContext genSrcContext) {
       return "final byte[] " + camelPath;
     }
 
@@ -82,27 +87,48 @@ public record AnchorPDA(List<Seed> seeds, PublicKey program) {
     }
   }
 
-  public record ConstSeed(byte[] seed) implements Seed {
+  public record ConstSeed(int index,
+                          byte[] seed, String str,
+                          boolean isReadable,
+                          PublicKey maybeKnownPublicKey) implements Seed {
 
-    private boolean isReadable(final String decoded) {
+    static boolean isReadable(final String decoded) {
       return decoded.chars().allMatch(c -> c < 0x7F);
     }
 
     @Override
     public String varName(final GenSrcContext genSrcContext) {
-      final var str = new String(seed);
-      if (isReadable(str)) {
-        genSrcContext.addUTF_8Import();
-        return '"' + str + "\".getBytes(UTF_8)";
+      if (isReadable) {
+        genSrcContext.addUS_ASCII_Import();
+        return String.format("""
+            "%s".getBytes(US_ASCII)""", str);
+      } else if (maybeKnownPublicKey != null) {
+        final var knownAccountRef = genSrcContext.accountMethods().get(maybeKnownPublicKey);
+        if (knownAccountRef != null) {
+          return knownAccountRef.callReference() + ".toByteArray()";
+        } else {
+          return maybeKnownPublicKey.toBase58() + ".toByteArray()";
+        }
       } else {
-        genSrcContext.addImport(Base64.class);
-        return "Base64.getDecoder().decode(\"" + Base64.getEncoder().encodeToString(seed) + "\")";
+        return "seed" + index;
       }
     }
 
     @Override
-    public String fieldName() {
-      return null;
+    public String fieldName(final GenSrcContext genSrcContext) {
+      if (isReadable) {
+        return null;
+      } else if (maybeKnownPublicKey != null) {
+        final var knownAccountRef = genSrcContext.accountMethods().get(maybeKnownPublicKey);
+        if (knownAccountRef != null) {
+          final var accountsClas = knownAccountRef.clas();
+          return String.format("final %s %s", accountsClas.getSimpleName(), AnchorUtil.camelCase(accountsClas.getSimpleName(), false));
+        } else {
+          return "final PublicKey " + maybeKnownPublicKey.toBase58();
+        }
+      } else {
+        return "final byte[] unknownSeedConstant" + index;
+      }
     }
 
     @Override
@@ -149,11 +175,19 @@ public record AnchorPDA(List<Seed> seeds, PublicKey program) {
     private SeedParser() {
     }
 
-    Seed createSeed() {
+    Seed createSeed(final int index) {
       return switch (kind) {
-        case account -> new AccountSeed(path, AnchorUtil.camelCase(path, false));
-        case arg -> new ArgSeed(path, AnchorUtil.camelCase(path.replace('.', '_'), false));
-        case _const -> new ConstSeed(value);
+        case account -> new AccountSeed(index, path, AnchorUtil.camelCase(path, false));
+        case arg -> new ArgSeed(index, path, AnchorUtil.camelCase(path.replace('.', '_'), false));
+        case _const -> {
+          final var str = new String(value);
+          yield new ConstSeed(
+              index,
+              value, str,
+              ConstSeed.isReadable(str),
+              value.length == PUBLIC_KEY_LENGTH ? PublicKey.createPubKey(value) : null
+          );
+        }
       };
     }
 
@@ -195,10 +229,10 @@ public record AnchorPDA(List<Seed> seeds, PublicKey program) {
     public boolean test(final char[] buf, final int offset, final int len, final JsonIterator ji) {
       if (fieldEquals("seeds", buf, offset, len)) {
         final var seeds = new ArrayList<Seed>();
-        for (SeedParser parser; ji.readArray(); ) {
-          parser = new SeedParser();
+        for (int i = 0; ji.readArray(); ++i) {
+          final var parser = new SeedParser();
           ji.testObject(parser);
-          seeds.add(parser.createSeed());
+          seeds.add(parser.createSeed(i));
         }
         this.seeds = List.copyOf(seeds);
       } else if (fieldEquals("program", buf, offset, len)) {
@@ -228,7 +262,7 @@ public record AnchorPDA(List<Seed> seeds, PublicKey program) {
 
     final var argTab = " ".repeat(signatureLine.length());
     final var fields = seeds.stream()
-        .map(Seed::fieldName)
+        .map(seed -> seed.fieldName(genSrcContext))
         .filter(Objects::nonNull)
         .collect(Collectors.joining(",\n" + argTab, argTab, ") {\n"));
     out.append(fields);

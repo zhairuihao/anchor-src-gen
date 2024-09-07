@@ -62,6 +62,10 @@ public record GenSrcContext(Map<String, AnchorNamedType> definedTypes,
     addStaticImport(StandardCharsets.class, "UTF_8");
   }
 
+  public void addUS_ASCII_Import() {
+    addStaticImport(StandardCharsets.class, "US_ASCII");
+  }
+
   public void appendImports(final StringBuilder builder) {
     String group, currentGroup = null;
     for (final var importLine : imports) {
