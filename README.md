@@ -8,13 +8,12 @@ Replace the values below to fit your needs.
 
 ```bash
 ./genSrc.sh \
- --log=[INFO|WARN|DEBUG] \
  --tabLength=2 \
  --sourceDirectory="src/main/java" \
- --moduleName="software.sava.anchor_src_gen" \
- --basePackageName="software.sava.anchor.gen" \
+ --moduleName="org.your.module" \
+ --basePackageName="org.your.package.anchor.gen" \
+ --programs="./main_net_programs.json" \
  --rpc="https://rpc.com" \
- --programs="./main_net_programs.csv" \
  --baseDelayMillis=200 \
  --numThreads=5 \
  --screen=[0|1]
