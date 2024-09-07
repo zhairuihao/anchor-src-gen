@@ -122,6 +122,7 @@ public record AnchorPDA(List<Seed> seeds, PublicKey program) {
         final var knownAccountRef = genSrcContext.accountMethods().get(maybeKnownPublicKey);
         if (knownAccountRef != null) {
           final var accountsClas = knownAccountRef.clas();
+          genSrcContext.addImport(accountsClas);
           return String.format("final %s %s", accountsClas.getSimpleName(), AnchorUtil.camelCase(accountsClas.getSimpleName(), false));
         } else {
           return "final PublicKey " + maybeKnownPublicKey.toBase58();
