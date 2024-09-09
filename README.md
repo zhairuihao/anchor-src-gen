@@ -13,9 +13,9 @@ Repositories that hold program SDK's generated using this library.
 ### Instructions
 
 - (De)Serialization:
-    - [Drift Program Instructions](https://github.com/sava-software/anchor-programs/blob/a5d36b603eb9bbfe8a5a393926c342d1048c513b/programs/src/main/java/software/sava/anchor/programs/drift/anchor/DriftProgram.java)
+    - [Drift Program Instructions](https://github.com/sava-software/anchor-programs/blob/main/programs/src/main/java/software/sava/anchor/programs/drift/anchor/DriftProgram.java)
 - Discriminators
-- [Convenient auto-wiring](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/glam/anchor/GlamProgram.java#L29)
+- [Convenient auto-wiring](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/glam/anchor/GlamProgram.java#L325)
   of [common accounts](https://github.com/sava-software/sava/blob/main/core/src/main/java/software/sava/core/accounts/SolanaAccounts.java)
     - TODO: Support user provided common account interfaces.
 
