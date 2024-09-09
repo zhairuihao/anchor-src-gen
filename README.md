@@ -10,10 +10,10 @@ Repositories that hold program SDK's generated using this library.
 
 ## Features
 
-### Instructions (e.g. [Drift](https://github.com/sava-software/anchor-programs/blob/main/programs/src/main/java/software/sava/anchor/programs/drift/anchor/DriftProgram.java#L42))
+### Instructions
 
-- Serialization
-    - TODO: Deserialization of instruction data.
+- (De)Serialization:
+    - [Drift Program Instructions](https://github.com/sava-software/anchor-programs/blob/a5d36b603eb9bbfe8a5a393926c342d1048c513b/programs/src/main/java/software/sava/anchor/programs/drift/anchor/DriftProgram.java)
 - Discriminators
 - [Convenient auto-wiring](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/glam/anchor/GlamProgram.java#L29)
   of [common accounts](https://github.com/sava-software/sava/blob/main/core/src/main/java/software/sava/core/accounts/SolanaAccounts.java)
@@ -23,23 +23,23 @@ Repositories that hold program SDK's generated using this library.
 
 - (De)Serialization
 - Filters:
-  - [RPC memory compare filters](https://solana.com/docs/rpc#filter-criteria)
-    - [by Drift User authority or delegate](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/User.java#L91)
-- Structs: 
-  - [Drift Order](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/Order.java)
+    - [RPC memory compare filters](https://solana.com/docs/rpc#filter-criteria)
+        - [by Drift User authority or delegate](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/User.java#L91)
+- Structs:
+    - [Drift Order](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/Order.java)
 - Accounts:
-  * [Discriminators with corresponding RPC memory compare filters](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/glam/anchor/types/FundAccount.java#L31)
-  * [PDA helpers](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/glam/anchor/GlamPDAs.java)
+    * [Discriminators with corresponding RPC memory compare filters](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/glam/anchor/types/FundAccount.java#L31)
+    * [PDA helpers](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/glam/anchor/GlamPDAs.java)
 - Enums:
-  * Simple:
-    * [Drift ExchangeStatus](https://github.com/sava-software/anchor-programs/blob/329056d611440fde45371aea7f5c95bf1bb465fb/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/ExchangeStatus.java)
-  * With arbitrary associated data structures:
-    * [Jupiter Swap](https://github.com/sava-software/anchor-programs/blob/329056d611440fde45371aea7f5c95bf1bb465fb/programs/src/main/java/software/sava/anchor/programs/jupiter/swap/anchor/types/Swap.java)
+    * Simple:
+        * [Drift ExchangeStatus](https://github.com/sava-software/anchor-programs/blob/329056d611440fde45371aea7f5c95bf1bb465fb/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/ExchangeStatus.java)
+    * With arbitrary associated data structures:
+        * [Jupiter Swap](https://github.com/sava-software/anchor-programs/blob/329056d611440fde45371aea7f5c95bf1bb465fb/programs/src/main/java/software/sava/anchor/programs/jupiter/swap/anchor/types/Swap.java)
 - Events:
-  * [Drift NewUserRecord](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/NewUserRecord.java)
-* Errors:
-  * [Jupiter Swap Error Classes](https://github.com/sava-software/anchor-programs/blob/b6624c92404215daa2355ec719784fdf447786a3/programs/src/main/java/software/sava/anchor/programs/jupiter/swap/anchor/JupiterError.java)
+    * [Drift NewUserRecord](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/NewUserRecord.java)
 
+* Errors:
+    * [Jupiter Swap Error Classes](https://github.com/sava-software/anchor-programs/blob/b6624c92404215daa2355ec719784fdf447786a3/programs/src/main/java/software/sava/anchor/programs/jupiter/swap/anchor/JupiterError.java)
 
 ## Generate Source
 
