@@ -22,9 +22,11 @@ Repositories that hold program SDK's generated using this library.
 ### Defined Types
 
 - (De)Serialization
-- Filters:
-    - [RPC memory compare filters](https://solana.com/docs/rpc#filter-criteria)
-        - [by Drift User authority or delegate](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/User.java#L91)
+- [RPC Filters](https://solana.com/docs/rpc#filter-criteria):
+    - Memory compare filters:
+      - [Filter by Drift User authority or delegate](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/User.java#L91)
+    - Data size filters
+      * [Filter by Drift User account size](https://github.com/sava-software/anchor-programs/blob/250f1ede541e6c617a29694a0d4ba442fe2e3293/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/User.java#L87)
 - Structs:
     - [Drift Order](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/Order.java)
 - Accounts:
