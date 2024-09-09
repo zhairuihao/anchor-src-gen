@@ -208,6 +208,19 @@ public record AnchorInstruction(Discriminator discriminator,
     }
     genSrcContext.addImport(Instruction.class);
 
+    if (!args.isEmpty()) {
+      final var struct = new AnchorStruct(args);
+      final var namedType = new AnchorNamedType(
+          discriminator,
+          AnchorUtil.camelCase(name, true) + "Data",
+          struct,
+          List.of(),
+          false
+      );
+      final var sourceCode = struct.generateSource(genSrcContext, namedType);
+      builder.append("\n").append(sourceCode).append("\n");
+    }
+
     return removeBlankLines(builder.toString());
   }
 }

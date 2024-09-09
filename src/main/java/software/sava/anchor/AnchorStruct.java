@@ -394,7 +394,9 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
 
   @Override
   public boolean isFixedLength(final Map<String, AnchorNamedType> definedTypes) {
-    return fields.stream().anyMatch(field -> !field.type().isFixedLength(definedTypes));
+    return fields.stream()
+        .map(AnchorNamedType::type)
+        .allMatch(type -> type.isFixedLength(definedTypes));
   }
 
   @Override
@@ -423,6 +425,14 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
       }
     }
     return serializedLength;
+  }
+
+  public String generateSource(final GenSrcContext genSrcContext,
+                               final AnchorNamedType context) {
+    final var builder = new StringBuilder(4_096);
+    genSrcContext.addImport(Borsh.class);
+    final var recordSource = generatePublicRecord(genSrcContext, context, fields, false, null);
+    return builder.append('\n').append(recordSource).toString();
   }
 
   public String generateSource(final GenSrcContext genSrcContext,
