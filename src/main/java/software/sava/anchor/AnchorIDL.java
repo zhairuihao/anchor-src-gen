@@ -18,7 +18,7 @@ public record AnchorIDL(String version,
                         String name,
                         List<AnchorConstant> constants,
                         List<AnchorInstruction> instructions,
-                        List<AnchorNamedType> accounts,
+                        Map<String, AnchorNamedType> accounts,
                         Map<String, AnchorNamedType> types,
                         List<AnchorNamedType> events,
                         List<AnchorErrorRecord> errors,
@@ -176,7 +176,7 @@ public record AnchorIDL(String version,
     private String name;
     private List<AnchorConstant> constants;
     private List<AnchorInstruction> instructions;
-    private List<AnchorNamedType> accounts;
+    private Map<String, AnchorNamedType> accounts;
     private Map<String, AnchorNamedType> types;
     private List<AnchorNamedType> events;
     private List<AnchorErrorRecord> errors;
@@ -191,7 +191,7 @@ public record AnchorIDL(String version,
           name == null ? metaData.get("name") : name,
           constants,
           instructions,
-          accounts == null ? List.of() : accounts,
+          accounts == null ? Map.of() : accounts,
           types == null ? Map.of() : types,
           events == null ? List.of() : events,
           errors,
@@ -211,7 +211,8 @@ public record AnchorIDL(String version,
       } else if (fieldEquals("instructions", buf, offset, len)) {
         this.instructions = parseList(ji, AnchorInstructionParser.FACTORY);
       } else if (fieldEquals("accounts", buf, offset, len)) {
-        this.accounts = parseList(ji, AnchorNamedTypeParser.UPPER_FACTORY);
+        this.accounts = parseList(ji, AnchorNamedTypeParser.UPPER_FACTORY).stream()
+            .collect(Collectors.toUnmodifiableMap(AnchorNamedType::name, Function.identity()));
       } else if (fieldEquals("types", buf, offset, len)) {
         this.types = parseList(ji, AnchorNamedTypeParser.UPPER_FACTORY).stream()
             .collect(Collectors.toUnmodifiableMap(AnchorNamedType::name, Function.identity()));

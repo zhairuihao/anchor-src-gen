@@ -101,6 +101,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
     final var accountMethods = HashMap.<PublicKey, AccountReferenceCall>newHashMap(1_024);
     AccountReferenceCall.generateMainNetNativeAccounts(accountMethods);
     final var genSrcContext = new GenSrcContext(
+        idl.accounts().keySet(),
         idl.types(),
         imports,
         staticImports,
@@ -140,7 +141,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
 
     final var types = idl.types();
     final var accounts = new HashSet<String>();
-    for (final var account : idl.accounts()) {
+    for (final var account : idl.accounts().values()) {
       final var namedType = account.type() == null
           ? types.get(account.name())
           : account;

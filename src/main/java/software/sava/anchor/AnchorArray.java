@@ -101,10 +101,10 @@ public record AnchorArray(AnchorTypeContext genericType,
   }
 
   @Override
-  public int serializedLength(final Map<String, AnchorNamedType> definedTypes) {
-    return genericType.isFixedLength(definedTypes)
-        ? depth * numElements * genericType.serializedLength(definedTypes)
-        : genericType.serializedLength(definedTypes);
+  public int serializedLength(final GenSrcContext genSrcContext, final boolean account) {
+    return genericType.isFixedLength(genSrcContext.definedTypes())
+        ? depth * numElements * genericType.serializedLength(genSrcContext, account)
+        : genericType.serializedLength(genSrcContext, account);
   }
 
   @Override

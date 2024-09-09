@@ -7,7 +7,6 @@ import systems.comodal.jsoniter.JsonIterator;
 import java.util.List;
 import java.util.Map;
 
-import static software.sava.anchor.AnchorNamedTypeParser.parseLowerList;
 import static software.sava.anchor.AnchorNamedTypeParser.parseUpperList;
 import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static software.sava.anchor.AnchorStruct.generateRecord;
@@ -34,7 +33,7 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
   }
 
   @Override
-  public int serializedLength(final Map<String, AnchorNamedType> definedTypes) {
+  public int serializedLength(final GenSrcContext genSrcContext, final boolean account) {
     return type().dataLength();
   }
 

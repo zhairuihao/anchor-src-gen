@@ -102,8 +102,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
         final var type = field.type();
         if (offsetsBuilder == null) {
           if (type.isFixedLength(genSrcContext.definedTypes())) {
-            final int serializedLength = type.serializedLength(genSrcContext.definedTypes());
-            byteLength += serializedLength;
+            byteLength += type.serializedLength(genSrcContext, false);
           } else {
             byteLength = -1;
           }
@@ -116,13 +115,13 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
               offsetVarName, byteLength
           ));
           if (type.isFixedLength(genSrcContext.definedTypes())) {
-            final int serializedLength = type.serializedLength(genSrcContext.definedTypes());
+            final int serializedLength = type.serializedLength(genSrcContext, true);
             if (serializedLength <= MAX_MEM_COMP_LENGTH) {
               field.generateMemCompFilter(genSrcContext, memCompFiltersBuilder, offsetVarName);
             }
             byteLength += serializedLength;
           } else {
-            final int serializedLength = type.fixedSerializedLength(genSrcContext.definedTypes());
+            final int serializedLength = type.fixedSerializedLength(genSrcContext, true);
             if (serializedLength <= MAX_MEM_COMP_LENGTH) {
               field.generateMemCompFilter(genSrcContext, memCompFiltersBuilder, offsetVarName);
             }
@@ -400,11 +399,11 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
   }
 
   @Override
-  public int serializedLength(final Map<String, AnchorNamedType> definedTypes) {
-    int serializedLength = AnchorUtil.DISCRIMINATOR_LENGTH;
+  public int serializedLength(final GenSrcContext genSrcContext, final boolean account) {
+    int serializedLength = account ? AnchorUtil.DISCRIMINATOR_LENGTH : 0;
     int len;
     for (final var field : fields) {
-      len = field.type().serializedLength(definedTypes);
+      len = field.type().serializedLength(genSrcContext, account);
       if (len <= 0) {
         throw throwInvalidDataType();
       } else {
@@ -415,11 +414,12 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
   }
 
   @Override
-  public int fixedSerializedLength(final Map<String, AnchorNamedType> definedTypes) {
-    int serializedLength = AnchorUtil.DISCRIMINATOR_LENGTH;
+  public int fixedSerializedLength(final GenSrcContext genSrcContext, final boolean account) {
+    final var definedTypes = genSrcContext.definedTypes();
+    int serializedLength = account ? AnchorUtil.DISCRIMINATOR_LENGTH : 0;
     for (final var field : fields) {
       if (isFixedLength(definedTypes)) {
-        serializedLength += field.type().serializedLength(definedTypes);
+        serializedLength += field.type().serializedLength(genSrcContext, account);
       } else {
         return serializedLength;
       }

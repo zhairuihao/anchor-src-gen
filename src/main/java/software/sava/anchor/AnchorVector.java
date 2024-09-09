@@ -5,7 +5,6 @@ import systems.comodal.jsoniter.JsonIterator;
 import systems.comodal.jsoniter.ValueType;
 
 import java.util.List;
-import java.util.Map;
 
 import static software.sava.anchor.AnchorArray.arrayDepthCode;
 import static software.sava.anchor.AnchorStruct.generateRecord;
@@ -154,7 +153,7 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
   }
 
   @Override
-  public int fixedSerializedLength(final Map<String, AnchorNamedType> definedTypes) {
+  public int fixedSerializedLength(final GenSrcContext genSrcContext, final boolean account) {
     return Integer.BYTES;
   }
 

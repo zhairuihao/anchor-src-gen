@@ -6,7 +6,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 
-public record GenSrcContext(Map<String, AnchorNamedType> definedTypes,
+public record GenSrcContext(Set<String> accounts,
+                            Map<String, AnchorNamedType> definedTypes,
                             Set<String> imports,
                             Set<String> staticImports,
                             String tab,
@@ -23,6 +24,10 @@ public record GenSrcContext(Map<String, AnchorNamedType> definedTypes,
       i = importLine.indexOf('.', i + 1);
       return i < 0 ? importLine : importLine.substring(0, i);
     }
+  }
+
+  public boolean isAccount(final String typeName) {
+    return accounts.contains(typeName);
   }
 
   public int tabLength() {

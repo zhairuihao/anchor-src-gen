@@ -11,12 +11,12 @@ public sealed interface AnchorTypeContext permits AnchorDefinedTypeContext, Anch
     return false;
   }
 
-  default int serializedLength(final Map<String, AnchorNamedType> definedTypes) {
+  default int serializedLength(final GenSrcContext genSrcContext, final boolean account) {
     throw throwInvalidDataType();
   }
 
-  default int fixedSerializedLength(final Map<String, AnchorNamedType> definedTypes) {
-    return serializedLength(definedTypes);
+  default int fixedSerializedLength(final GenSrcContext genSrcContext, final boolean account) {
+    return serializedLength(genSrcContext, account);
   }
 
   default void generateMemCompFilter(final GenSrcContext genSrcContext,
