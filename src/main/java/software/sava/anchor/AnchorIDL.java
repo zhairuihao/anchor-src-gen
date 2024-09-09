@@ -93,21 +93,20 @@ public record AnchorIDL(String version,
     final var out = new StringBuilder(4_096);
     genSrcContext.appendPackage(out);
 
-    if (!genSrcContext.imports().isEmpty()) {
-      genSrcContext.appendImports(out);
-      out.append('\n');
-    }
+    genSrcContext.addImport(ProgramError.class.getName());
+    genSrcContext.appendImports(out);
 
     final var className = genSrcContext.programName() + "Error";
     out.append(String.format("""
-        public sealed interface %s permits
+        
+        public sealed interface %s extends ProgramError permits
         """, className));
 
     final var tab = genSrcContext.tab();
     final var iterator = errors.iterator();
     for (AnchorErrorRecord error; ; ) {
       error = iterator.next();
-      out.append(tab).append(className).append('.').append(error.className());
+      out.append(tab).append(tab).append(className).append('.').append(error.className());
       if (iterator.hasNext()) {
         out.append(",\n");
       } else {

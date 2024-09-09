@@ -37,7 +37,8 @@ Repositories that hold program SDK's generated using this library.
     * [Jupiter Swap](https://github.com/sava-software/anchor-programs/blob/329056d611440fde45371aea7f5c95bf1bb465fb/programs/src/main/java/software/sava/anchor/programs/jupiter/swap/anchor/types/Swap.java)
 - Events:
   * [Drift NewUserRecord](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/NewUserRecord.java)
-* Errors: TODO
+* Errors:
+  * [Jupiter Swap Error Classes](https://github.com/sava-software/anchor-programs/blob/b6624c92404215daa2355ec719784fdf447786a3/programs/src/main/java/software/sava/anchor/programs/jupiter/swap/anchor/JupiterError.java)
 
 
 ## Generate Source
