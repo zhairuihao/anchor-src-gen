@@ -218,7 +218,7 @@ public record AnchorInstruction(Discriminator discriminator,
           false
       );
       final var sourceCode = struct.generateSource(genSrcContext, namedType);
-      builder.append("\n").append(sourceCode).append("\n");
+      builder.append(sourceCode.indent(genSrcContext.tabLength()));
     }
 
     return removeBlankLines(builder.toString());

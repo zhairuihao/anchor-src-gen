@@ -33,7 +33,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
                                final String recordAccessModifier,
                                final String interfaceName,
                                final int ordinal) {
-    return generateRecord(genSrcContext, context, fields, recordAccessModifier, interfaceName, ordinal, false, null);
+    return generateRecord(genSrcContext, context, fields, recordAccessModifier, interfaceName, ordinal, false, null, false);
   }
 
   static String generateRecord(final GenSrcContext genSrcContext,
@@ -43,7 +43,8 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
                                final String interfaceName,
                                final int ordinal,
                                final boolean isAccount,
-                               final AnchorNamedType account) {
+                               final AnchorNamedType account,
+                               final boolean hasDiscriminator) {
     final var tab = genSrcContext.tab();
     final int tabLength = tab.length();
     final var builder = new StringBuilder(4_096);
@@ -80,21 +81,22 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
       return removeBlankLines(builder.append('}').toString());
     }
 
-    int byteLength;
     final StringBuilder offsetsBuilder;
     final StringBuilder memCompFiltersBuilder;
     if (isAccount) {
       paramsBuilder.append("PublicKey _address,\n");
       paramsBuilder.append("Discriminator discriminator,\n");
       genSrcContext.addImport(Discriminator.class);
-      byteLength = AnchorUtil.DISCRIMINATOR_LENGTH;
       offsetsBuilder = new StringBuilder(2_048);
       memCompFiltersBuilder = new StringBuilder(4_096);
     } else {
-      byteLength = 0;
+      if (hasDiscriminator) {
+        paramsBuilder.append("Discriminator discriminator,\n");
+      }
       offsetsBuilder = null;
       memCompFiltersBuilder = null;
     }
+    int byteLength = hasDiscriminator ? AnchorUtil.DISCRIMINATOR_LENGTH : 0;
     var fieldIterator = fields.iterator();
     for (AnchorNamedType field; ; ) {
       field = fieldIterator.next();
@@ -102,7 +104,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
         final var type = field.type();
         if (offsetsBuilder == null) {
           if (type.isFixedLength(genSrcContext.definedTypes())) {
-            byteLength += type.serializedLength(genSrcContext, false);
+            byteLength += type.serializedLength(genSrcContext, hasDiscriminator);
           } else {
             byteLength = -1;
           }
@@ -115,13 +117,13 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
               offsetVarName, byteLength
           ));
           if (type.isFixedLength(genSrcContext.definedTypes())) {
-            final int serializedLength = type.serializedLength(genSrcContext, true);
+            final int serializedLength = type.serializedLength(genSrcContext, hasDiscriminator);
             if (serializedLength <= MAX_MEM_COMP_LENGTH) {
               field.generateMemCompFilter(genSrcContext, memCompFiltersBuilder, offsetVarName);
             }
             byteLength += serializedLength;
           } else {
-            final int serializedLength = type.fixedSerializedLength(genSrcContext, true);
+            final int serializedLength = type.fixedSerializedLength(genSrcContext, hasDiscriminator);
             if (serializedLength <= MAX_MEM_COMP_LENGTH) {
               field.generateMemCompFilter(genSrcContext, memCompFiltersBuilder, offsetVarName);
             }
@@ -190,6 +192,8 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
       final var factoryMethodBuilder = new StringBuilder(2_048);
       if (isAccount) {
         factoryMethodBuilder.append("final PublicKey _address,\n");
+      }
+      if (hasDiscriminator) {
         factoryMethodBuilder.append("final Discriminator discriminator,\n");
       }
       fieldIterator = fields.iterator();
@@ -214,6 +218,8 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
       final var newInstanceBuilder = new StringBuilder(2_048);
       if (isAccount) {
         newInstanceBuilder.append("_address,\n");
+      }
+      if (hasDiscriminator) {
         newInstanceBuilder.append("discriminator,\n");
       }
       fieldIterator = fields.iterator();
@@ -235,7 +241,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
     }
 
     final var readBuilder = new StringBuilder(4_096);
-    final boolean singleField = !isAccount && fields.size() == 1;
+    final boolean singleField = !hasDiscriminator && fields.size() == 1;
     final var offsetVarName = singleField ? "offset" : "i";
     fieldIterator = fields.iterator();
     for (AnchorNamedType field; ; ) {
@@ -271,13 +277,29 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
       genSrcContext.addImport(BiFunction.class);
       genSrcContext.addImport(PublicKey.class);
       genSrcContext.addStaticImport(AnchorUtil.class, "parseDiscriminator");
-    } else if (!singleField) {
-      builder.append(tab).append(tab).append("int i = offset;\n");
+    } else {
+      builder.append("""
+          if (_data == null || _data.length == 0) {""".indent(tabLength << 1));
+      builder.append(tab).append("""
+          return null;
+          }""".indent(tabLength << 1)
+      );
+      if (hasDiscriminator) {
+        builder.append("""
+            final var discriminator = parseDiscriminator(_data, offset);
+            int i = offset + discriminator.length();""".indent(tabLength << 1)
+        );
+        genSrcContext.addStaticImport(AnchorUtil.class, "parseDiscriminator");
+      } else if (!singleField) {
+        builder.append(tab).append(tab).append("int i = offset;\n");
+      }
     }
     builder.append(readBuilder.toString().indent(tabLength << 1));
     final var newInstanceBuilder = new StringBuilder(2_048);
     if (isAccount) {
       newInstanceBuilder.append("_address,\n");
+    }
+    if (hasDiscriminator) {
       newInstanceBuilder.append("discriminator,\n");
     }
     fieldIterator = fields.iterator();
@@ -307,7 +329,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
         public int write(final byte[] _data, final int offset) {
         """.indent(tabLength));
     if (ordinal < 0) {
-      if (isAccount) {
+      if (hasDiscriminator) {
         builder.append("""
             int i = offset + discriminator.write(_data, offset);""".indent(tabLength << 1));
       } else {
@@ -348,7 +370,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
           """.indent(tabLength));
       builder.append(tab).append(tab);
       if (ordinal < 0) {
-        if (isAccount) {
+        if (hasDiscriminator) {
           builder.append(String.format("return %d + ", AnchorUtil.DISCRIMINATOR_LENGTH));
         } else {
           builder.append("return ");
@@ -377,8 +399,9 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
                                      final AnchorNamedType context,
                                      final List<AnchorNamedType> fields,
                                      final boolean isAccount,
-                                     final AnchorNamedType account) {
-    return generateRecord(genSrcContext, context, fields, "public", "Borsh", -1, isAccount, account);
+                                     final AnchorNamedType account,
+                                     final boolean hasDiscriminator) {
+    return generateRecord(genSrcContext, context, fields, "public", "Borsh", -1, isAccount, account, hasDiscriminator);
   }
 
   @Override
@@ -399,11 +422,11 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
   }
 
   @Override
-  public int serializedLength(final GenSrcContext genSrcContext, final boolean account) {
-    int serializedLength = account ? AnchorUtil.DISCRIMINATOR_LENGTH : 0;
+  public int serializedLength(final GenSrcContext genSrcContext, final boolean hasDiscriminator) {
+    int serializedLength = hasDiscriminator ? AnchorUtil.DISCRIMINATOR_LENGTH : 0;
     int len;
     for (final var field : fields) {
-      len = field.type().serializedLength(genSrcContext, account);
+      len = field.type().serializedLength(genSrcContext, hasDiscriminator);
       if (len <= 0) {
         throw throwInvalidDataType();
       } else {
@@ -414,12 +437,12 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
   }
 
   @Override
-  public int fixedSerializedLength(final GenSrcContext genSrcContext, final boolean account) {
+  public int fixedSerializedLength(final GenSrcContext genSrcContext, final boolean hasDiscriminator) {
     final var definedTypes = genSrcContext.definedTypes();
-    int serializedLength = account ? AnchorUtil.DISCRIMINATOR_LENGTH : 0;
+    int serializedLength = hasDiscriminator ? AnchorUtil.DISCRIMINATOR_LENGTH : 0;
     for (final var field : fields) {
       if (isFixedLength(definedTypes)) {
-        serializedLength += field.type().serializedLength(genSrcContext, account);
+        serializedLength += field.type().serializedLength(genSrcContext, hasDiscriminator);
       } else {
         return serializedLength;
       }
@@ -431,7 +454,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
                                final AnchorNamedType context) {
     final var builder = new StringBuilder(4_096);
     genSrcContext.addImport(Borsh.class);
-    final var recordSource = generatePublicRecord(genSrcContext, context, fields, false, null);
+    final var recordSource = generatePublicRecord(genSrcContext, context, fields, false, null, true);
     return builder.append('\n').append(recordSource).toString();
   }
 
@@ -445,7 +468,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
 
     genSrcContext.addImport(Borsh.class);
 
-    final var recordSource = generatePublicRecord(genSrcContext, context, fields, isAccount, account);
+    final var recordSource = generatePublicRecord(genSrcContext, context, fields, isAccount, account, isAccount);
 
     genSrcContext.appendImports(builder);
 

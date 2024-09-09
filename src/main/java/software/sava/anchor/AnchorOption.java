@@ -145,10 +145,10 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
   }
 
   @Override
-  public int fixedSerializedLength(final GenSrcContext genSrcContext, final boolean account) {
+  public int fixedSerializedLength(final GenSrcContext genSrcContext, final boolean hasDiscriminator) {
     return 1 + (genericType.isFixedLength(genSrcContext.definedTypes())
-        ? genericType.serializedLength(genSrcContext, account)
-        : genericType.fixedSerializedLength(genSrcContext, account));
+        ? genericType.serializedLength(genSrcContext, hasDiscriminator)
+        : genericType.fixedSerializedLength(genSrcContext, hasDiscriminator));
   }
 
   @Override

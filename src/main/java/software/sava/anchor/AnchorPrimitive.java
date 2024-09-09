@@ -30,7 +30,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
   }
 
   @Override
-  public int serializedLength(final GenSrcContext genSrcContext, final boolean account) {
+  public int serializedLength(final GenSrcContext genSrcContext, final boolean hasDiscriminator) {
     return type.dataLength();
   }
 

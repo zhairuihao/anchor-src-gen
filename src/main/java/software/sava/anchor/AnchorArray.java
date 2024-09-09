@@ -101,10 +101,10 @@ public record AnchorArray(AnchorTypeContext genericType,
   }
 
   @Override
-  public int serializedLength(final GenSrcContext genSrcContext, final boolean account) {
+  public int serializedLength(final GenSrcContext genSrcContext, final boolean hasDiscriminator) {
     return genericType.isFixedLength(genSrcContext.definedTypes())
-        ? depth * numElements * genericType.serializedLength(genSrcContext, account)
-        : genericType.serializedLength(genSrcContext, account);
+        ? depth * numElements * genericType.serializedLength(genSrcContext, hasDiscriminator)
+        : genericType.serializedLength(genSrcContext, hasDiscriminator);
   }
 
   @Override

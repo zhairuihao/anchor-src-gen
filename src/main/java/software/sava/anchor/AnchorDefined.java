@@ -131,8 +131,8 @@ public record AnchorDefined(String typeName) implements AnchorReferenceTypeConte
   }
 
   @Override
-  public int serializedLength(final GenSrcContext genSrcContext, final boolean account) {
-    return genSrcContext.definedTypes().get(typeName).type().serializedLength(genSrcContext, account);
+  public int serializedLength(final GenSrcContext genSrcContext, final boolean hasDiscriminator) {
+    return genSrcContext.definedTypes().get(typeName).type().serializedLength(genSrcContext, hasDiscriminator);
   }
 
   @Override

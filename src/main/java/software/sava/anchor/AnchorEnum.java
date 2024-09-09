@@ -33,7 +33,7 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
   }
 
   @Override
-  public int serializedLength(final GenSrcContext genSrcContext, final boolean account) {
+  public int serializedLength(final GenSrcContext genSrcContext, final boolean hasDiscriminator) {
     return type().dataLength();
   }
 
