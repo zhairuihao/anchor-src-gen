@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 import static systems.comodal.jsoniter.factory.ElementFactory.parseList;
 
@@ -20,7 +21,7 @@ public record AnchorIDL(String version,
                         List<AnchorNamedType> accounts,
                         Map<String, AnchorNamedType> types,
                         List<AnchorNamedType> events,
-                        List<AnchorError> errors,
+                        List<AnchorErrorRecord> errors,
                         Map<String, String> metaData,
                         byte[] json) {
 
@@ -80,6 +81,59 @@ public record AnchorIDL(String version,
     return closeClass(genSrcContext, className, out);
   }
 
+  public String generateErrorSource(final GenSrcContext genSrcContext) {
+    if (errors.isEmpty()) {
+      return null;
+    }
+    final var errorClassBuilder = new StringBuilder(4_096);
+    for (final var error : errors) {
+      error.generateSource(genSrcContext, errorClassBuilder);
+    }
+
+    final var out = new StringBuilder(4_096);
+    genSrcContext.appendPackage(out);
+
+    if (!genSrcContext.imports().isEmpty()) {
+      genSrcContext.appendImports(out);
+      out.append('\n');
+    }
+
+    final var className = genSrcContext.programName() + "Error";
+    out.append(String.format("""
+        public sealed interface %s permits
+        """, className));
+
+    final var tab = genSrcContext.tab();
+    final var iterator = errors.iterator();
+    for (AnchorErrorRecord error; ; ) {
+      error = iterator.next();
+      out.append(tab).append(className).append('.').append(error.className());
+      if (iterator.hasNext()) {
+        out.append(",\n");
+      } else {
+        out.append(" {\n\n");
+        break;
+      }
+    }
+
+    out.append(tab).append(String.format("static %s getInstance(final int errorCode) {\n", className));
+    out.append(tab).append(tab).append("return switch (errorCode) {\n");
+
+    for (final var error : errors) {
+      out.append(tab).append(tab).append(tab);
+      out.append(String.format("case %d -> %s.INSTANCE;\n", error.code(), error.className()));
+    }
+    out.append(tab).append(tab).append(tab);
+    out.append(String.format("""
+        default -> throw new IllegalStateException("Unexpected %s error code: " + errorCode);
+        """, genSrcContext.programName()));
+    out.append(tab).append(tab).append("};\n");
+    out.append(tab).append("}\n");
+    out.append(errorClassBuilder.toString().indent(genSrcContext.tabLength()));
+    out.append("}");
+    return removeBlankLines(out.toString());
+  }
+
   public String generateSource(final GenSrcContext genSrcContext) {
     final var pdaAccounts = HashMap.newHashMap(instructions.size() << 1);
     final var ixBuilder = new StringBuilder();
@@ -113,7 +167,7 @@ public record AnchorIDL(String version,
     builder.append(String.format("""
         private %s() {
         }""", className).indent(genSrcContext.tabLength()));
-    return builder.append('}').toString();
+    return removeBlankLines(builder.append('}').toString());
   }
 
 
@@ -126,7 +180,7 @@ public record AnchorIDL(String version,
     private List<AnchorNamedType> accounts;
     private Map<String, AnchorNamedType> types;
     private List<AnchorNamedType> events;
-    private List<AnchorError> errors;
+    private List<AnchorErrorRecord> errors;
     private Map<String, String> metaData;
 
     private Parser() {

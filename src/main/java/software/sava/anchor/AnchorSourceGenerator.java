@@ -115,7 +115,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
     try {
       Files.writeString(fullSrcDir.resolve(programName + "Program.java"), programSource, CREATE, TRUNCATE_EXISTING, WRITE);
     } catch (final IOException e) {
-      throw new UncheckedIOException("Failed to write source code file.", e);
+      throw new UncheckedIOException("Failed to write Program source code file.", e);
     }
 
     genSrcContext.clearImports();
@@ -124,7 +124,17 @@ public record AnchorSourceGenerator(Path sourceDirectory,
       try {
         Files.writeString(fullSrcDir.resolve(programName + "PDAs.java"), pdaSource, CREATE, TRUNCATE_EXISTING, WRITE);
       } catch (final IOException e) {
-        throw new UncheckedIOException("Failed to write source code file.", e);
+        throw new UncheckedIOException("Failed to write PDA source code file.", e);
+      }
+    }
+
+    genSrcContext.clearImports();
+    final var errorSource = idl.generateErrorSource(genSrcContext);
+    if (errorSource != null && !errorSource.isBlank()) {
+      try {
+        Files.writeString(fullSrcDir.resolve(programName + "Error.java"), errorSource, CREATE, TRUNCATE_EXISTING, WRITE);
+      } catch (final IOException e) {
+        throw new UncheckedIOException("Failed to write error source code file.", e);
       }
     }
 
@@ -141,7 +151,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
         try {
           Files.writeString(typesDir.resolve(namedType.name() + ".java"), sourceCode, CREATE, TRUNCATE_EXISTING, WRITE);
         } catch (final IOException e) {
-          throw new UncheckedIOException("Failed to write source code file.", e);
+          throw new UncheckedIOException("Failed to write Account source code file.", e);
         }
       } else {
         throw new IllegalStateException("Unexpected anchor account type " + namedType.type());
@@ -178,7 +188,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
           throw new IllegalStateException("Unexpected anchor defined type " + namedType.type());
         }
       } catch (final IOException e) {
-        throw new UncheckedIOException("Failed to write source code file.", e);
+        throw new UncheckedIOException("Failed to write Event source code file.", e);
       }
     }
   }

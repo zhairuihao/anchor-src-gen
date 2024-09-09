@@ -70,6 +70,10 @@ public final class AnchorUtil {
   }
 
   public static String snakeCase(final String notSnakeCased) {
+    return snakeCase(notSnakeCased, false);
+  }
+
+  public static String snakeCase(final String notSnakeCased, final boolean upperCase) {
     if (notSnakeCased == null || notSnakeCased.isBlank()) {
       return notSnakeCased;
     }
@@ -80,9 +84,9 @@ public final class AnchorUtil {
       c = notSnakeCased.charAt(i);
       if (Character.isUpperCase(c)) {
         buf[s] = '_';
-        buf[++s] = Character.toLowerCase(c);
+        buf[++s] = upperCase ? c : Character.toLowerCase(c);
       } else {
-        buf[s] = c;
+        buf[s] = upperCase ? Character.toUpperCase(c) : c;
       }
     }
     return s == len ? notSnakeCased : new String(buf, 0, s);

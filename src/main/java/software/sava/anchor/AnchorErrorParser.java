@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 
-final class AnchorErrorParser implements ElementFactory<AnchorError> {
+final class AnchorErrorParser implements ElementFactory<AnchorErrorRecord> {
 
   static final Supplier<AnchorErrorParser> FACTORY = AnchorErrorParser::new;
 
@@ -19,8 +19,8 @@ final class AnchorErrorParser implements ElementFactory<AnchorError> {
   }
 
   @Override
-  public AnchorError create() {
-    return new AnchorError(code, name, msg);
+  public AnchorErrorRecord create() {
+    return AnchorErrorRecord.createError(code, name, msg);
   }
 
   @Override

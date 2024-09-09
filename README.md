@@ -16,7 +16,7 @@ Repositories that hold program SDK's generated using this library.
     - TODO: Deserialization of instruction data.
 - Discriminators
 - [Convenient auto-wiring](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/glam/anchor/GlamProgram.java#L29)
-  of [common accounts](https://github.com/sava-software/sava/blob/main/core/src/main/java/software/sava/core/accounts/SolanaAccounts.java).
+  of [common accounts](https://github.com/sava-software/sava/blob/main/core/src/main/java/software/sava/core/accounts/SolanaAccounts.java)
     - TODO: Support user provided common account interfaces.
 
 ### Defined Types
