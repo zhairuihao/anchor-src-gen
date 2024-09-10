@@ -12,11 +12,23 @@ public sealed interface AnchorTypeContext permits AnchorDefinedTypeContext, Anch
   }
 
   default int serializedLength(final GenSrcContext genSrcContext, final boolean hasDiscriminator) {
+    if (hasDiscriminator) {
+      throw throwInvalidDataType();
+    } else {
+      return serializedLength(genSrcContext);
+    }
+  }
+
+  default int serializedLength(final GenSrcContext genSrcContext) {
     throw throwInvalidDataType();
   }
 
   default int fixedSerializedLength(final GenSrcContext genSrcContext, final boolean hasDiscriminator) {
     return serializedLength(genSrcContext, hasDiscriminator);
+  }
+
+  default int fixedSerializedLength(final GenSrcContext genSrcContext) {
+    return serializedLength(genSrcContext);
   }
 
   default void generateMemCompFilter(final GenSrcContext genSrcContext,

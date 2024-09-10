@@ -153,7 +153,7 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
   }
 
   @Override
-  public int fixedSerializedLength(final GenSrcContext genSrcContext, final boolean hasDiscriminator) {
+  public int fixedSerializedLength(final GenSrcContext genSrcContext) {
     return Integer.BYTES;
   }
 

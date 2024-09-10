@@ -104,7 +104,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
         final var type = field.type();
         if (offsetsBuilder == null) {
           if (type.isFixedLength(genSrcContext.definedTypes())) {
-            byteLength += type.serializedLength(genSrcContext, hasDiscriminator);
+            byteLength += type.serializedLength(genSrcContext);
           } else {
             byteLength = -1;
           }
@@ -117,13 +117,13 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
               offsetVarName, byteLength
           ));
           if (type.isFixedLength(genSrcContext.definedTypes())) {
-            final int serializedLength = type.serializedLength(genSrcContext, hasDiscriminator);
+            final int serializedLength = type.serializedLength(genSrcContext);
             if (serializedLength <= MAX_MEM_COMP_LENGTH) {
               field.generateMemCompFilter(genSrcContext, memCompFiltersBuilder, offsetVarName);
             }
             byteLength += serializedLength;
           } else {
-            final int serializedLength = type.fixedSerializedLength(genSrcContext, hasDiscriminator);
+            final int serializedLength = type.fixedSerializedLength(genSrcContext);
             if (serializedLength <= MAX_MEM_COMP_LENGTH) {
               field.generateMemCompFilter(genSrcContext, memCompFiltersBuilder, offsetVarName);
             }
@@ -426,7 +426,8 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
     int serializedLength = hasDiscriminator ? AnchorUtil.DISCRIMINATOR_LENGTH : 0;
     int len;
     for (final var field : fields) {
-      len = field.type().serializedLength(genSrcContext, hasDiscriminator);
+      final var type = field.type();
+      len = field.type().serializedLength(genSrcContext, genSrcContext.isAccount(type.typeName()));
       if (len <= 0) {
         throw throwInvalidDataType();
       } else {
@@ -442,7 +443,8 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
     int serializedLength = hasDiscriminator ? AnchorUtil.DISCRIMINATOR_LENGTH : 0;
     for (final var field : fields) {
       if (isFixedLength(definedTypes)) {
-        serializedLength += field.type().serializedLength(genSrcContext, hasDiscriminator);
+        final var type = field.type();
+        serializedLength += type.serializedLength(genSrcContext, genSrcContext.isAccount(type.typeName()));
       } else {
         return serializedLength;
       }
