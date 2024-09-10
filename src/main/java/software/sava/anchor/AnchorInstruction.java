@@ -209,10 +209,19 @@ public record AnchorInstruction(Discriminator discriminator,
     genSrcContext.addImport(Instruction.class);
 
     if (!args.isEmpty()) {
+      final var definedTypes = genSrcContext.definedTypes();
+      final var ixCamelName = AnchorUtil.camelCase(name, true);
+      var typeName = ixCamelName + "IxData";
+      if (definedTypes.containsKey(typeName)) {
+        typeName = ixCamelName + "IxRecord";
+        for (int i = 0; definedTypes.containsKey(typeName); ++i) {
+          typeName = ixCamelName + "IxData" + i;
+        }
+      }
       final var struct = new AnchorStruct(args);
       final var namedType = new AnchorNamedType(
           discriminator,
-          AnchorUtil.camelCase(name, true) + "Data",
+          typeName,
           struct,
           List.of(),
           false
