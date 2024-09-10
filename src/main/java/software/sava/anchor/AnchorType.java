@@ -21,8 +21,8 @@ public enum AnchorType {
   _enum(Enum.class, 1),
   f32(float.class, OptionalDouble.class, Float.BYTES),
   f64(double.class, OptionalDouble.class, Double.BYTES),
-  i8(int.class, OptionalInt.class, 1),
-  i16(int.class, OptionalInt.class, 2),
+  i8(byte.class, int.class, OptionalInt.class, 1),
+  i16(short.class, int.class, OptionalInt.class, 2),
   i32(int.class, OptionalInt.class, Integer.BYTES),
   i64(long.class, OptionalLong.class, Long.BYTES),
   i128(BigInteger.class, Long.BYTES << 1),
@@ -30,8 +30,8 @@ public enum AnchorType {
   publicKey(PublicKey.class, PublicKey.PUBLIC_KEY_LENGTH),
   string(String.class, -1),
   struct,
-  u8(int.class, OptionalInt.class, 1),
-  u16(int.class, OptionalInt.class, 2),
+  u8(byte.class, int.class, OptionalInt.class, 1),
+  u16(short.class, int.class, OptionalInt.class, 2),
   u32(int.class, OptionalInt.class, Integer.BYTES),
   u64(long.class, OptionalLong.class, Long.BYTES),
   u128(BigInteger.class, Long.BYTES << 1),
@@ -108,16 +108,27 @@ public enum AnchorType {
       throw throwUnsupportedType(buf, offset, len);
     }
   };
+
+
+  private final Class<?> realJavaType;
   private final Class<?> javaType;
   private final Class<?> optionalJavaType;
   private final int dataLength;
   private final AnchorPrimitive primitiveType;
 
-  AnchorType(final Class<?> javaType, final Class<?> optionalJavaType, final int dataLength) {
+  AnchorType(final Class<?> realJavaType,
+             final Class<?> javaType,
+             final Class<?> optionalJavaType,
+             final int dataLength) {
+    this.realJavaType = realJavaType;
     this.javaType = javaType;
     this.optionalJavaType = optionalJavaType;
     this.dataLength = dataLength;
     this.primitiveType = new AnchorPrimitive(this);
+  }
+
+  AnchorType(final Class<?> javaType, final Class<?> optionalJavaType, final int dataLength) {
+    this(javaType, javaType, optionalJavaType, dataLength);
   }
 
   AnchorType(final Class<?> javaType, final int dataLength) {
@@ -169,6 +180,10 @@ public enum AnchorType {
 
   public Class<?> javaType() {
     return javaType;
+  }
+
+  public Class<?> realJavaType() {
+    return realJavaType;
   }
 
   public Class<?> optionalJavaType() {

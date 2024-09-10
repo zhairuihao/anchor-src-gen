@@ -10,7 +10,7 @@ Repositories that hold program SDK's generated using this library.
 
 ## Features
 
-Leaf links provide concrete examples of functionality.
+Leaf links provide concrete examples.
 
 ### Instructions
 

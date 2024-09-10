@@ -50,6 +50,10 @@ public sealed interface AnchorTypeContext permits AnchorDefinedTypeContext, Anch
     throw throwInvalidDataType();
   }
 
+  default String realTypeName() {
+    return typeName();
+  }
+
   default String optionalTypeName() {
     return typeName();
   }

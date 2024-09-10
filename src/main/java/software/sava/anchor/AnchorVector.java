@@ -57,7 +57,7 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
 
   @Override
   public String typeName() {
-    return genericType.typeName() + arrayDepthCode(depth);
+    return genericType.realTypeName() + arrayDepthCode(depth);
   }
 
   @Override
@@ -90,7 +90,7 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
       readLine = String.format("final var %s = Borsh.%s(%s.class, %s::read, _data, %s);",
           varName, borshMethodName, genericType.typeName(), genericType.typeName(), offsetVarName);
     } else {
-      final var javaType = genericType.type().javaType().getSimpleName();
+      final var javaType = genericType.realTypeName();
       final var borshMethodName = depth == 1
           ? String.format("read%sVector", javaType)
           : String.format("readMultiDimension%sVector", javaType);
@@ -141,7 +141,7 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
                                      final boolean hasNext) {
     paramsBuilder.append(context.docComments());
     final var varName = context.name();
-    final var param = String.format("final %s%s %s,\n", genericType.typeName(), arrayDepthCode(depth), varName);
+    final var param = String.format("final %s%s %s,\n", genericType.realTypeName(), arrayDepthCode(depth), varName);
     paramsBuilder.append(param);
     genSrcContext.addImport(Borsh.class);
     dataLengthBuilder.append(String.format(" + Borsh.len(%s)", varName));

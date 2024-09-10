@@ -36,7 +36,7 @@ public record AnchorArray(AnchorTypeContext genericType,
     addImports(genSrcContext, genericType);
     final var docs = context.docComments();
     final var varName = context.name();
-    final var typeName = genericType.typeName();
+    final var typeName = genericType.realTypeName();
     final var depthCode = arrayDepthCode(depth);
     return genericType.type() == string
         ? String.format("%s%s%s %s, byte%s %s", docs, typeName, depthCode, varName, depthCode, varName)
@@ -48,7 +48,7 @@ public record AnchorArray(AnchorTypeContext genericType,
                                            final int depth,
                                            final String context) {
     addImports(genSrcContext, genericType);
-    final var typeName = genericType.typeName();
+    final var typeName = genericType.realTypeName();
     final var depthCode = arrayDepthCode(depth);
     return String.format("%s%s %s", typeName, depthCode, context);
   }
@@ -118,7 +118,7 @@ public record AnchorArray(AnchorTypeContext genericType,
 
   @Override
   public String typeName() {
-    return genericType.typeName() + arrayDepthCode(depth);
+    return genericType.realTypeName() + arrayDepthCode(depth);
   }
 
   @Override
@@ -157,7 +157,7 @@ public record AnchorArray(AnchorTypeContext genericType,
     } else {
       readLine = String.format("final var %s = Borsh.readArray(new %s[%d], _data, %s);",
           varName,
-          genericType.typeName(),
+          genericType.realTypeName(),
           numElements,
           offsetVarName
       );
@@ -213,7 +213,7 @@ public record AnchorArray(AnchorTypeContext genericType,
                                      final boolean hasNext) {
     paramsBuilder.append(context.docComments());
     final var varName = context.name();
-    final var param = String.format("final %s%s %s,\n", genericType.typeName(), arrayDepthCode(depth), varName);
+    final var param = String.format("final %s%s %s,\n", genericType.realTypeName(), arrayDepthCode(depth), varName);
     paramsBuilder.append(param);
     genSrcContext.addImport(Borsh.class);
     dataLengthBuilder.append(String.format(" + Borsh.fixedLen(%s)", varName));

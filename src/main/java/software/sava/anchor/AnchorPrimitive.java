@@ -111,6 +111,11 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
   }
 
   @Override
+  public String realTypeName() {
+    return type.realJavaType().getSimpleName();
+  }
+
+  @Override
   public String optionalTypeName() {
     return type.optionalJavaType().getSimpleName();
   }
