@@ -51,8 +51,11 @@ final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
           yield new AnchorBytesConstant(this.name, bytes);
         }
         case i32 -> new AnchorIntConstant(this.name, Integer.parseInt(value.replaceAll("\\s+", "")));
-        // TODO: unescape quotes.
-        case string -> new AnchorStringConstant(this.name, value);
+        case string -> new AnchorStringConstant(this.name,
+            value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"'
+                ? value.substring(1, value.length() - 1)
+                : value
+        );
         case u16 -> new AnchorIntConstant(this.name, Integer.parseInt(value.replaceAll("_", "")));
         case u64, usize -> new AnchorLongConstant(this.name, Long.parseLong(value.replaceAll("_", "")));
       };

@@ -154,6 +154,32 @@ public record AnchorArray(AnchorTypeContext genericType,
           genericType.typeName(),
           offsetVarName
       );
+    } else if (genericType instanceof AnchorArray array) {
+      var fixedArray = String.format("[%d][%d]", numElements, array.numElements);
+      var next = array.genericType();
+      for (; ; ) {
+        if (next instanceof AnchorArray anchorArray) {
+          fixedArray = String.format("%s[%d]", fixedArray, anchorArray.numElements);
+          next = anchorArray.genericType();
+        } else {
+          fixedArray = next.realTypeName() + fixedArray;
+          break;
+        }
+      }
+      if (next instanceof AnchorDefined) {
+        readLine = String.format("final var %s = Borsh.readArray(new %s, %s::read, _data, %s);",
+            varName,
+            fixedArray,
+            genericType.typeName(),
+            offsetVarName
+        );
+      } else {
+        readLine = String.format("final var %s = Borsh.readArray(new %s, _data, %s);",
+            varName,
+            fixedArray,
+            offsetVarName
+        );
+      }
     } else {
       readLine = String.format("final var %s = Borsh.readArray(new %s[%d], _data, %s);",
           varName,
