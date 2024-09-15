@@ -187,10 +187,13 @@ public record AnchorInstruction(Discriminator discriminator,
       genSrcContext.addStaticImport(AnchorUtil.class, "writeDiscriminator");
       dataLength += AnchorUtil.DISCRIMINATOR_LENGTH;
       builder.append(String.format("""
-              final byte[] _data = new byte[%d%s];
+              final byte[] _data = new byte[%s];
               int i = writeDiscriminator(%s, _data, 0);
               """,
-          dataLength, dataLengthAdds, discriminatorReference
+          dataLengthAdds.contains("\n")
+              ? String.format("\n%s%s%d%s\n", tab, tab, dataLength, dataLengthAdds)
+              : String.format("%d%s", dataLength, dataLengthAdds),
+          discriminatorReference
       ).indent(dataTab.length()));
       builder.append(dataSerialization.indent(dataTab.length()));
       builder.append(String.format("""

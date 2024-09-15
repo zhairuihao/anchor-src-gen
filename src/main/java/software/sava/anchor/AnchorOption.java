@@ -236,9 +236,9 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
       final int dataLength = type.dataLength();
       if (dataLength < 0) {
         final var dynamicLengthCode = dynamicLengthCode(type, varName);
-        dataLengthBuilder.append(String.format(" + (%s ? 1 : (1 + %s))", notPresentCheckCode, dynamicLengthCode));
+        dataLengthBuilder.append(String.format("+ (%s ? 1 : (1 + %s))", notPresentCheckCode, dynamicLengthCode));
       } else {
-        dataLengthBuilder.append(String.format(" + (%s ? 1 : %d)", notPresentCheckCode, 1 + dataLength));
+        dataLengthBuilder.append(String.format("+ (%s ? 1 : %d)", notPresentCheckCode, 1 + dataLength));
       }
 
       dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
