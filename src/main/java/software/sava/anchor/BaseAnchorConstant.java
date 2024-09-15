@@ -1,6 +1,6 @@
 package software.sava.anchor;
 
-abstract sealed class BaseAnchorConstant implements AnchorConstant permits AnchorStringConstant {
+abstract sealed class BaseAnchorConstant implements AnchorConstant permits AnchorBytesConstant, AnchorIntConstant, AnchorLongConstant, AnchorStringConstant {
 
   private final String name;
 
@@ -15,6 +15,21 @@ abstract sealed class BaseAnchorConstant implements AnchorConstant permits Ancho
 
   @Override
   public String stringValue() {
+    throw new IllegalStateException();
+  }
+
+  @Override
+  public int intValue() {
+    throw new IllegalStateException();
+  }
+
+  @Override
+  public long longValue() {
+    throw new IllegalStateException();
+  }
+
+  @Override
+  public byte[] bytes() {
     throw new IllegalStateException();
   }
 }

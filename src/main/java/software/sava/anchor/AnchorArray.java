@@ -65,7 +65,7 @@ public record AnchorArray(AnchorTypeContext genericType,
       final var jsonType = ji.whatIsNext();
       if (jsonType == ValueType.ARRAY) {
         final var genericType = AnchorType.parseContextType(ji.openArray());
-        if (genericType instanceof AnchorDefined) {
+        if (genericType instanceof AnchorDefined || genericType instanceof AnchorArray) {
           ji.closeObj();
         }
         final int len = ji.continueArray().readInt();

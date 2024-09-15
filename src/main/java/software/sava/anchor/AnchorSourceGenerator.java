@@ -36,6 +36,11 @@ public record AnchorSourceGenerator(Path sourceDirectory,
             return null;
           } else {
             final byte[] json = idl.json();
+            try {
+              Files.write(Path.of(idlAddress + "_idl.json"), json, CREATE, TRUNCATE_EXISTING, WRITE);
+            } catch (final IOException e) {
+              throw new UncheckedIOException(e);
+            }
             return AnchorIDL.parseIDL(json);
           }
         });

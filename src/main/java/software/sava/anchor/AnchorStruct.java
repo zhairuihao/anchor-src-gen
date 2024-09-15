@@ -50,13 +50,13 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
     final var builder = new StringBuilder(4_096);
     final var paramsBuilder = new StringBuilder(4_096);
 
-    builder.append(context.docComments());
     final var name = context.name();
     final var recordSigLine = recordAccessModifier
         + (recordAccessModifier.isBlank() ? "" : " ")
         + String.format("record %s(", name);
 
     if (fields.isEmpty()) {
+      builder.append(context.docComments());
       builder.append(recordSigLine).append(String.format("""
           ) implements %s {
           
@@ -140,7 +140,9 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
     }
 
     final var params = paramsBuilder.toString().indent(recordSigLine.length()).strip();
+
     builder
+        .append(context.docComments())
         .append(recordSigLine)
         .append(replaceNewLinesIfLessThan(params, fields.size(), 3))
         .append(String.format("""

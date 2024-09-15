@@ -19,7 +19,7 @@ public record AnchorInstruction(Discriminator discriminator,
                                 List<AnchorNamedType> args) {
 
   static String replaceNewLinesIfLessThan(final String lines, final int numLines, final int limit) {
-    return numLines < limit ? lines.replaceAll("\n +", " ") : lines;
+    return numLines < limit && !lines.contains("//") ? lines.replaceAll("\n +", " ") : lines;
   }
 
   static String replaceNewLinesIfLessThan(final StringBuilder lines, final int numLines, final int limit) {
