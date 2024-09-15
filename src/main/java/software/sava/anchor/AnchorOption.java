@@ -42,9 +42,9 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
     return switch (anchorType) {
       case array, bytes -> String.format("%s == null || %s.length == 0", varName, varName);
       case string -> String.format("_%s == null || _%s.length == 0", varName, varName);
-      case vec -> String.format("%s == null || %s.isEmpty()", varName, varName);
+      case vec, i8, u8, i16, u16, i32, u32, i64, u64, f32, f64 ->
+          String.format("%s == null || %s.isEmpty()", varName, varName);
       case defined, i128, u128, publicKey, bool -> String.format("%s == null", varName);
-      case i8, u8, i16, u16, i32, u32, i64, u64, f32, f64 -> String.format("%s.isEmpty()", varName);
       default -> throw new UnsupportedOperationException("TODO: support optional " + anchorType);
     };
   }
