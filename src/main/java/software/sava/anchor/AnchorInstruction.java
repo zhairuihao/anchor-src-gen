@@ -214,7 +214,7 @@ public record AnchorInstruction(Discriminator discriminator,
       var typeName = ixCamelName + "IxData";
       if (definedTypes.containsKey(typeName)) {
         typeName = ixCamelName + "IxRecord";
-        for (int i = 0; definedTypes.containsKey(typeName); ++i) {
+        for (int i = 2; definedTypes.containsKey(typeName); ++i) {
           typeName = ixCamelName + "IxData" + i;
         }
       }

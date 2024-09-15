@@ -30,7 +30,7 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
     };
   }
 
-  public static String resentCode(final AnchorType anchorType) {
+  public static String presentCode(final AnchorType anchorType) {
     return switch (anchorType) {
       case array, bytes, string, vec, defined, i128, u128, publicKey, bool -> " != null";
       case i8, u8, i16, u16, i32, u32, i64, u64, f32, f64 -> ".isPresent()";
@@ -117,7 +117,7 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
           read.substring(0, i - 1),
           notPresentCode(type()),
           presentCode(type(), readCall.substring(0, sizeLine - 1)),
-          varName, resentCode(type()),
+          varName, presentCode(type()),
           genSrcContext.tab(),
           readCall.substring(sizeLine + 1)
       );
@@ -136,12 +136,18 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
                               final String varName,
                               final boolean hasNext) {
     genSrcContext.addImport(Borsh.class);
-    final var type = genericType.type();
-    if (type == string) {
-      return String.format((hasNext ? "i += Borsh.writeOptional(_%s, _data, i);" : "Borsh.writeOptional(_%s, _data, i);"), varName);
-    } else {
-      return String.format((hasNext ? "i += Borsh.writeOptional(%s, _data, i);" : "Borsh.writeOptional(%s, _data, i);"), varName);
-    }
+    return switch (genericType.type()) {
+      case string ->
+          String.format((hasNext ? "i += Borsh.writeOptional(_%s, _data, i);" : "Borsh.writeOptional(_%s, _data, i);"), varName);
+      case f32 ->
+          String.format((hasNext ? "i += Borsh.writeOptionalFloat(%s, _data, i);" : "Borsh.writeOptionalFloat(%s, _data, i);"), varName);
+      case i8, u8 ->
+          String.format((hasNext ? "i += Borsh.writeOptionalByte(%s, _data, i);" : "Borsh.writeOptionalByte(%s, _data, i);"), varName);
+      case i16, u16 ->
+          String.format((hasNext ? "i += Borsh.writeOptionalShort(%s, _data, i);" : "Borsh.writeOptionalShort(%s, _data, i);"), varName);
+      default ->
+          String.format((hasNext ? "i += Borsh.writeOptional(%s, _data, i);" : "Borsh.writeOptional(%s, _data, i);"), varName);
+    };
   }
 
   @Override
@@ -178,7 +184,10 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
           genSrcContext.addImport(Borsh.class);
           yield String.format("Borsh.lenOptional(%s, %d)", varName, dataLength);
         }
-        default -> String.format("%s", 1 + dataLength);
+        default -> {
+          final var notPresentCheckCode = notPresentCheckCode(type, varName);
+          yield String.format("(%s ? 1 : %d)", notPresentCheckCode, 1 + dataLength);
+        }
       };
     }
   }
@@ -220,18 +229,20 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
       } else if (type == defined) {
         genSrcContext.addDefinedImport(genericType.typeName());
       }
+
+      final var tab = genSrcContext.tab();
+      dataLengthBuilder.append('\n').append(tab).append(tab);
+
       final int dataLength = type.dataLength();
-      final int addSize;
       if (dataLength < 0) {
         final var dynamicLengthCode = dynamicLengthCode(type, varName);
-        dataLengthBuilder.append(String.format(" + (%s ? 0 : %s)", notPresentCheckCode, dynamicLengthCode));
-        addSize = 1;
+        dataLengthBuilder.append(String.format(" + (%s ? 1 : (1 + %s))", notPresentCheckCode, dynamicLengthCode));
       } else {
-        addSize = 1 + type.dataLength();
+        dataLengthBuilder.append(String.format(" + (%s ? 1 : %d)", notPresentCheckCode, 1 + dataLength));
       }
 
       dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
-      return addSize;
+      return 0;
     }
   }
 
