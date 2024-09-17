@@ -140,17 +140,22 @@ public record AnchorArray(AnchorTypeContext genericType,
   public String generateRead(final GenSrcContext genSrcContext,
                              final String varName,
                              final boolean hasNext,
-                             final boolean singleField, final String offsetVarName) {
-    if (depth > 1) {
+                             final boolean singleField,
+                             final String offsetVarName) {
+    if (depth > 2) {
       throw new UnsupportedOperationException("TODO: supports multi dimensional arrays.");
     }
-    final String readLine;
+    final var incrementOffset = hasNext ? String.format("%s += ", offsetVarName) : "";
     if (genericType instanceof AnchorDefined) {
-      readLine = String.format("final var %s = Borsh.readArray(new %s[%d]%s, %s::read, _data, %s);",
+      return String.format("""
+              final var %s = new %s[%d]%s;
+              %sBorsh.readArray(%s, %s::read, _data, %s);""",
           varName,
           genericType.typeName(),
           numElements,
           arrayDepthCode(depth - 1),
+          incrementOffset,
+          varName,
           genericType.typeName(),
           offsetVarName
       );
@@ -167,30 +172,39 @@ public record AnchorArray(AnchorTypeContext genericType,
         }
       }
       if (next instanceof AnchorDefined) {
-        readLine = String.format("final var %s = Borsh.readArray(new %s, %s::read, _data, %s);",
+        return String.format("""
+                final var %s = new %s;
+                %sBorsh.readArray(%s, %s::read, _data, %s);""",
             varName,
             fixedArray,
+            incrementOffset,
+            varName,
             genericType.typeName(),
             offsetVarName
         );
       } else {
-        readLine = String.format("final var %s = Borsh.readArray(new %s, _data, %s);",
+        return String.format("""
+                final var %s = new %s;
+                %sBorsh.readArray(%s, _data, %s);""",
             varName,
             fixedArray,
+            incrementOffset,
+            varName,
             offsetVarName
         );
       }
     } else {
-      readLine = String.format("final var %s = Borsh.readArray(new %s[%d], _data, %s);",
+      return String.format("""
+              final var %s = new %s[%d];
+              %sBorsh.readArray(%s, _data, %s);""",
           varName,
           genericType.realTypeName(),
           numElements,
+          incrementOffset,
+          varName,
           offsetVarName
       );
     }
-    return hasNext
-        ? readLine + String.format("%ni += Borsh.fixedLen(%s);", varName)
-        : readLine;
   }
 
   @Override
@@ -204,8 +218,8 @@ public record AnchorArray(AnchorTypeContext genericType,
                               final boolean hasNext) {
     genSrcContext.addImport(Borsh.class);
     return hasNext
-        ? String.format("i += Borsh.fixedWrite(%s, _data, i);", varName)
-        : String.format("Borsh.fixedWrite(%s, _data, i);", varName);
+        ? String.format("i += Borsh.writeArray(%s, _data, i);", varName)
+        : String.format("Borsh.writeArray(%s, _data, i);", varName);
   }
 
   @Override
@@ -226,7 +240,7 @@ public record AnchorArray(AnchorTypeContext genericType,
   @Override
   public String generateLength(final String varName, final GenSrcContext genSrcContext) {
     genSrcContext.addImport(Borsh.class);
-    return String.format("Borsh.fixedLen(%s)", varName);
+    return String.format("Borsh.lenArray(%s)", varName);
   }
 
   @Override
@@ -242,7 +256,7 @@ public record AnchorArray(AnchorTypeContext genericType,
     final var param = String.format("final %s%s %s,\n", genericType.realTypeName(), arrayDepthCode(depth), varName);
     paramsBuilder.append(param);
     genSrcContext.addImport(Borsh.class);
-    dataLengthBuilder.append(String.format(" + Borsh.fixedLen(%s)", varName));
+    dataLengthBuilder.append(String.format(" + Borsh.lenArray(%s)", varName));
     dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
     if (genericType instanceof AnchorDefined) {
       genSrcContext.addDefinedImport(genericType.typeName());

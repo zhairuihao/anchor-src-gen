@@ -85,29 +85,75 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
       throw new UnsupportedOperationException("TODO: support vectors with more than 2 dimensions.");
     }
     final String readLine;
-    if (genericType instanceof AnchorDefined) {
-      final var borshMethodName = depth == 1 ? "readVector" : "readMultiDimensionVector";
-      readLine = String.format("final var %s = Borsh.%s(%s.class, %s::read, _data, %s);",
-          varName, borshMethodName, genericType.typeName(), genericType.typeName(), offsetVarName);
-    } else {
-      final var javaType = genericType.realTypeName();
-      final var borshMethodName = depth == 1
-          ? String.format("read%sVector", javaType)
-          : String.format("readMultiDimension%sVector", javaType);
-      readLine = String.format("final var %s = Borsh.%s(_data, %s);",
-          varName, borshMethodName, offsetVarName);
+    switch (genericType) {
+      case AnchorDefined _ -> {
+        final var borshMethodName = depth == 1 ? "readVector" : "readMultiDimensionVector";
+        readLine = String.format("final var %s = Borsh.%s(%s.class, %s::read, _data, %s);",
+            varName, borshMethodName, genericType.typeName(), genericType.typeName(), offsetVarName);
+      }
+      case AnchorArray array -> {
+        final var next = array.genericType();
+        if (next instanceof AnchorDefined) {
+          readLine = String.format("final var %s = Borsh.readMultiDimensionVectorArray(%s.class, %s::read, %d, _data, %s);",
+              varName,
+              next.typeName(), next.typeName(),
+              array.numElements(),
+              offsetVarName
+          );
+        } else {
+          readLine = String.format("final var %s = Borsh.readMultiDimension%sVectorArray(%d, _data, %s);",
+              varName,
+              next.realTypeName(),
+              array.numElements(),
+              offsetVarName
+          );
+        }
+        return hasNext
+            ? readLine + String.format("%n%s += Borsh.lenVectorArray(%s);", offsetVarName, varName)
+            : readLine;
+      }
+      case AnchorVector vector -> {
+        final var next = vector.genericType();
+        if (next instanceof AnchorDefined) {
+          readLine = String.format("final var %s = Borsh.readMultiDimensionVector(%s.class, %s::read, _data, %s);",
+              varName,
+              next.typeName(), next.typeName(),
+              offsetVarName
+          );
+        } else {
+          readLine = String.format("final var %s = Borsh.readMultiDimension%sVector(_data, %s);",
+              varName,
+              next.realTypeName(),
+              offsetVarName
+          );
+        }
+      }
+      case null, default -> {
+        final var javaType = genericType.realTypeName();
+        final var borshMethodName = depth == 1
+            ? String.format("read%sVector", javaType)
+            : String.format("readMultiDimension%sVector", javaType);
+        readLine = String.format("final var %s = Borsh.%s(_data, %s);",
+            varName, borshMethodName, offsetVarName);
+      }
     }
     return hasNext
-        ? readLine + String.format("\ni += Borsh.len(%s);", varName)
+        ? readLine + String.format("%n%s += Borsh.lenVector(%s);", offsetVarName, varName)
         : readLine;
   }
 
   @Override
   public String generateWrite(final GenSrcContext genSrcContext, final String varName, final boolean hasNext) {
     genSrcContext.addImport(Borsh.class);
-    return hasNext
-        ? String.format("i += Borsh.write(%s, _data, i);", varName)
-        : String.format("Borsh.write(%s, _data, i);", varName);
+    if (genericType instanceof AnchorArray) {
+      return hasNext
+          ? String.format("i += Borsh.writeVectorArray(%s, _data, i);", varName)
+          : String.format("Borsh.writeVectorArray(%s, _data, i);", varName);
+    } else {
+      return hasNext
+          ? String.format("i += Borsh.writeVector(%s, _data, i);", varName)
+          : String.format("Borsh.writeVector(%s, _data, i);", varName);
+    }
   }
 
   @Override
@@ -128,7 +174,9 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
   @Override
   public String generateLength(final String varName, final GenSrcContext genSrcContext) {
     genSrcContext.addImport(Borsh.class);
-    return String.format("Borsh.len(%s)", varName);
+    return genericType instanceof AnchorArray
+        ? String.format("Borsh.lenVectorArray(%s)", varName)
+        : String.format("Borsh.lenVector(%s)", varName);
   }
 
   @Override
@@ -144,7 +192,11 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
     final var param = String.format("final %s%s %s,\n", genericType.realTypeName(), arrayDepthCode(depth), varName);
     paramsBuilder.append(param);
     genSrcContext.addImport(Borsh.class);
-    dataLengthBuilder.append(String.format(" + Borsh.len(%s)", varName));
+    if (genericType instanceof AnchorArray) {
+      dataLengthBuilder.append(String.format(" + Borsh.lenVectorArray(%s)", varName));
+    } else {
+      dataLengthBuilder.append(String.format(" + Borsh.lenVector(%s)", varName));
+    }
     dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
     if (genericType instanceof AnchorDefined) {
       genSrcContext.addDefinedImport(genericType.typeName());

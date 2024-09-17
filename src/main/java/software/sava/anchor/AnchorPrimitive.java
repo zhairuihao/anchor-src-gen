@@ -48,7 +48,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
         case bytes -> String.format("""
             final byte[] _data = new byte[5 + %s.length];
             _data[0] = 1;
-            Borsh.write(%s, _data, 1);
+            Borsh.writeVector(%s, _data, 1);
             return Filter.createMemCompFilter(%s, _data);""", varName, varName, offsetVarName);
         case i8, u8 ->
             String.format("return Filter.createMemCompFilter(%s, new byte[]{(byte) 1, (byte) %s});", offsetVarName, varName);
@@ -67,7 +67,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
             final byte[] bytes = %s.getBytes(UTF_8);
             final byte[] _data = new byte[5 + bytes.length];
             _data[0] = 1;
-            Borsh.write(bytes, _data, 1);
+            Borsh.writeVector(bytes, _data, 1);
             return Filter.createMemCompFilter(%s, _data);""", varName, offsetVarName);
         default -> throw new IllegalStateException("Unexpected type: " + type);
       };
@@ -77,7 +77,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
             String.format("return Filter.createMemCompFilter(%s, new byte[]{(byte) (%s ? 1 : 0)});", offsetVarName, varName);
         case bytes -> String.format("""
             final byte[] _data = new byte[4 + %s.length];
-            Borsh.write(%s, _data, i);
+            Borsh.writeVector(%s, _data, i);
             return Filter.createMemCompFilter(%s, _data);""", varName, varName, offsetVarName);
         case i8, u8 ->
             String.format("return Filter.createMemCompFilter(%s, new byte[]{(byte) %s});", offsetVarName, varName);
@@ -89,7 +89,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
         case string -> String.format("""
             final byte[] bytes = %s.getBytes(UTF_8);
             final byte[] _data = new byte[4 + bytes.length];
-            Borsh.write(bytes, _data, 0);
+            Borsh.writeVector(bytes, _data, 0);
             return Filter.createMemCompFilter(%s, _data);""", varName, offsetVarName);
         default -> throw new IllegalStateException("Unexpected type: " + type);
       };
@@ -199,11 +199,11 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
           : readLine;
     } else if (type == bytes) {
       genSrcContext.addImport(Borsh.class);
-      final var readLine = String.format("final byte[] %s = Borsh.read(_data, %s);", varName, offsetVarName);
+      final var readLine = String.format("final byte[] %s = Borsh.readbyteVector(_data, %s);", varName, offsetVarName);
       return hasNext
           ? readLine + String.format("""
           
-          i += (Integer.BYTES + %s.length);""", varName)
+          i += Borsh.lenVector(%s);""", varName)
           : readLine;
     } else {
       final var read = generateRead(genSrcContext, offsetVarName);
@@ -215,7 +215,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
             : readLine;
       } else {
         return hasNext
-            ? readLine + String.format("\ni += %d;", dataLength)
+            ? readLine + String.format("%ni += %d;", dataLength)
             : readLine;
       }
     }
@@ -241,10 +241,10 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
     if (type == string) {
       genSrcContext.addUTF_8Import();
       genSrcContext.addImport(Borsh.class);
-      return String.format("%sBorsh.write(_%s, _data, i);", hasNext ? "i += " : "", varName);
+      return String.format("%sBorsh.writeVector(_%s, _data, i);", hasNext ? "i += " : "", varName);
     } else if (type == bytes) {
       genSrcContext.addImport(Borsh.class);
-      return String.format("%sBorsh.write(%s, _data, i);", hasNext ? "i += " : "", varName);
+      return String.format("%sBorsh.writeVector(%s, _data, i);", hasNext ? "i += " : "", varName);
     } else {
       switch (type) {
         case f32 -> genSrcContext.addStaticImport(ByteUtil.class, "putFloat32LE");
@@ -373,12 +373,12 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
   public String generateLength(final String varName, final GenSrcContext genSrcContext) {
     if (type == string) {
       genSrcContext.addImport(Borsh.class);
-      return String.format("Borsh.len(_%s)", varName);
+      return String.format("Borsh.lenVector(_%s)", varName);
     } else if (type == bytes) {
       genSrcContext.addImport(Borsh.class);
-      return String.format("Borsh.len(%s)", varName);
+      return String.format("Borsh.lenVector(%s)", varName);
     } else {
-      return String.format("%s", type.dataLength());
+      return Integer.toString(type.dataLength());
     }
   }
 
@@ -398,12 +398,12 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       genSrcContext.addUTF_8Import();
       stringsBuilder.append(String.format("final byte[] _%s = %s.getBytes(UTF_8);\n", varName, varName));
       genSrcContext.addImport(Borsh.class);
-      dataLengthBuilder.append(String.format(" + Borsh.len(_%s)", varName));
+      dataLengthBuilder.append(String.format(" + Borsh.lenVector(_%s)", varName));
       dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
       return 4;
     } else if (type == bytes) {
       genSrcContext.addImport(Borsh.class);
-      dataLengthBuilder.append(String.format(" + Borsh.len(%s)", varName));
+      dataLengthBuilder.append(String.format(" + Borsh.lenVector(%s)", varName));
       dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
       return 4;
     } else {

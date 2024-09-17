@@ -10,7 +10,7 @@ import static software.sava.anchor.AnchorType.*;
 
 public record AnchorOption(AnchorTypeContext genericType) implements AnchorReferenceTypeContext {
 
-  public static String presentCode(final AnchorType anchorType, final String read) {
+  private static String presentCode(final AnchorType anchorType, final String read) {
     return switch (anchorType) {
       case array, bytes, string, vec, defined, i128, u128, publicKey, bool -> read;
       case i8, u8, i16, u16, i32, u32 -> "OptionalInt.of(" + read + ')';
@@ -20,7 +20,7 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
     };
   }
 
-  public static String notPresentCode(final AnchorType anchorType) {
+  private static String notPresentCode(final AnchorType anchorType) {
     return switch (anchorType) {
       case array, bytes, string, vec, defined, i128, u128, publicKey, bool -> "null";
       case i8, u8, i16, u16, i32, u32 -> "OptionalInt.empty()";
@@ -30,7 +30,7 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
     };
   }
 
-  public static String presentCode(final AnchorType anchorType) {
+  private static String presentCode(final AnchorType anchorType) {
     return switch (anchorType) {
       case array, bytes, string, vec, defined, i128, u128, publicKey, bool -> " != null";
       case i8, u8, i16, u16, i32, u32, i64, u64, f32, f64 -> ".isPresent()";
@@ -38,23 +38,14 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
     };
   }
 
-  public static String notPresentCheckCode(final AnchorType anchorType, final String varName) {
+  private static String notPresentCheckCode(final AnchorType anchorType, final String varName) {
     return switch (anchorType) {
-      case array, bytes -> String.format("%s == null || %s.length == 0", varName, varName);
+      case array, vec, bytes -> String.format("%s == null || %s.length == 0", varName, varName);
       case string -> String.format("_%s == null || _%s.length == 0", varName, varName);
-      case vec, i8, u8, i16, u16, i32, u32, i64, u64, f32, f64 ->
+      case i8, u8, i16, u16, i32, u32, i64, u64, f32, f64 ->
           String.format("%s == null || %s.isEmpty()", varName, varName);
       case defined, i128, u128, publicKey, bool -> String.format("%s == null", varName);
       default -> throw new UnsupportedOperationException("TODO: support optional " + anchorType);
-    };
-  }
-
-  public static String dynamicLengthCode(final AnchorType anchorType, final String varName) {
-    return switch (anchorType) {
-      case array -> String.format("Borsh.fixedLen(%s)", varName);
-      case bytes, defined, vec -> String.format("Borsh.len(%s)", varName);
-      case string -> String.format("Borsh.len(_%s)", varName);
-      default -> null;
     };
   }
 
@@ -137,14 +128,26 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
                               final boolean hasNext) {
     genSrcContext.addImport(Borsh.class);
     return switch (genericType.type()) {
+      case bytes ->
+          String.format((hasNext ? "i += Borsh.writeOptionalVector(%s, _data, i);" : "Borsh.writeOptionalVector(%s, _data, i);"), varName);
       case string ->
-          String.format((hasNext ? "i += Borsh.writeOptional(_%s, _data, i);" : "Borsh.writeOptional(_%s, _data, i);"), varName);
+          String.format((hasNext ? "i += Borsh.writeOptionalVector(_%s, _data, i);" : "Borsh.writeOptionalVector(_%s, _data, i);"), varName);
       case f32 ->
-          String.format((hasNext ? "i += Borsh.writeOptionalFloat(%s, _data, i);" : "Borsh.writeOptionalFloat(%s, _data, i);"), varName);
+          String.format((hasNext ? "i += Borsh.writeOptionalfloat(%s, _data, i);" : "Borsh.writeOptionalfloat(%s, _data, i);"), varName);
       case i8, u8 ->
-          String.format((hasNext ? "i += Borsh.writeOptionalByte(%s, _data, i);" : "Borsh.writeOptionalByte(%s, _data, i);"), varName);
+          String.format((hasNext ? "i += Borsh.writeOptionalbyte(%s, _data, i);" : "Borsh.writeOptionalbyte(%s, _data, i);"), varName);
       case i16, u16 ->
-          String.format((hasNext ? "i += Borsh.writeOptionalShort(%s, _data, i);" : "Borsh.writeOptionalShort(%s, _data, i);"), varName);
+          String.format((hasNext ? "i += Borsh.writeOptionalshort(%s, _data, i);" : "Borsh.writeOptionalshort(%s, _data, i);"), varName);
+      case array, vec -> String.format("""
+              if (%s) {
+              %s_data[i++] = 0;
+              } else {
+              %s_data[i++] = 1;
+              %s}""",
+          notPresentCheckCode(type(), varName),
+          genSrcContext.tab(), genSrcContext.tab(),
+          genericType.generateWrite(genSrcContext, varName, hasNext).indent(genSrcContext.tabLength())
+      );
       default ->
           String.format((hasNext ? "i += Borsh.writeOptional(%s, _data, i);" : "Borsh.writeOptional(%s, _data, i);"), varName);
     };
@@ -160,36 +163,8 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
 
   @Override
   public String generateLength(final String varName, final GenSrcContext genSrcContext) {
-    final var type = type();
-    final int dataLength = type.dataLength();
-    if (dataLength < 0) {
-      return switch (type) {
-        case bytes, defined -> {
-          genSrcContext.addImport(Borsh.class);
-          yield String.format("Borsh.lenOptional(%s)", varName);
-        }
-        case string -> {
-          genSrcContext.addImport(Borsh.class);
-          yield String.format("Borsh.lenOptional(_%s)", varName);
-        }
-        default -> {
-          final var notPresentCheckCode = notPresentCheckCode(type, varName);
-          final var dynamicLengthCode = dynamicLengthCode(type, varName);
-          yield String.format("(%s ? 1 : (1 + %s))", notPresentCheckCode, dynamicLengthCode);
-        }
-      };
-    } else {
-      return switch (type) {
-        case i128, u128, publicKey -> {
-          genSrcContext.addImport(Borsh.class);
-          yield String.format("Borsh.lenOptional(%s, %d)", varName, dataLength);
-        }
-        default -> {
-          final var notPresentCheckCode = notPresentCheckCode(type, varName);
-          yield String.format("(%s ? 1 : %d)", notPresentCheckCode, 1 + dataLength);
-        }
-      };
-    }
+    final var notPresentCheckCode = notPresentCheckCode(type(), varName);
+    return String.format("(%s ? 1 : (1 + %s))", notPresentCheckCode, genericType.generateLength(varName, genSrcContext));
   }
 
   @Override
@@ -220,8 +195,6 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
               """,
           varName, varName, varName, varName, varName, varName, varName, varName, varName, varName));
       dataLengthBuilder.append(String.format(" + _%sLen", varName));
-      dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
-      return 0;
     } else {
       final var optionalType = type.optionalJavaType();
       if (optionalType != null) {
@@ -235,15 +208,13 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
 
       final int dataLength = type.dataLength();
       if (dataLength < 0) {
-        final var dynamicLengthCode = dynamicLengthCode(type, varName);
-        dataLengthBuilder.append(String.format("+ (%s ? 1 : (1 + %s))", notPresentCheckCode, dynamicLengthCode));
+        dataLengthBuilder.append(String.format("+ (%s ? 1 : (1 + %s))", notPresentCheckCode, genericType.generateLength(varName, genSrcContext)));
       } else {
         dataLengthBuilder.append(String.format("+ (%s ? 1 : %d)", notPresentCheckCode, 1 + dataLength));
       }
-
-      dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
-      return 0;
     }
+    dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
+    return 0;
   }
 
   @Override
