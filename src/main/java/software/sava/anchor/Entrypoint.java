@@ -77,6 +77,7 @@ public final class Entrypoint extends Thread {
   @Override
   public void run() {
     ProgramConfig task = null;
+    AnchorIDL idl;
     for (long delayMillis, latestCall, now, sleep; ; ) {
       try {
         task = this.tasks.peek();
@@ -96,31 +97,33 @@ public final class Entrypoint extends Thread {
         if (task == null) {
           return;
         }
-        final var idl = task.fetchIDL(rpcClient);
+        idl = task.fetchIDL(rpcClient);
         if (idl == null) {
           continue;
         }
-        final var packageName = task.formatPackage(basePackageName);
-        final var generator = new AnchorSourceGenerator(
-            sourceDirectory,
-            packageName,
-            tabLength,
-            idl
-        );
-        this.latestCall.getAndAccumulate(now, MAX);
-        generator.run();
-        generator.addExports(exports);
-        this.latestCall.getAndAccumulate(now + ((System.currentTimeMillis() - now) >> 1), MAX);
-        this.errorCount.getAndUpdate(x -> x > 0 ? x - 1 : x);
       } catch (final RuntimeException e) {
         logger.log(ERROR, "Failed to generate IDL for " + task, e);
         this.errorCount.getAndUpdate(x -> x < 100 ? x + 1 : x);
         this.tasks.add(task);
+        return;
       } catch (final InterruptedException e) {
         throw new RuntimeException(e);
       } finally {
         this.semaphore.release();
       }
+
+      final var packageName = task.formatPackage(basePackageName);
+      final var generator = new AnchorSourceGenerator(
+          sourceDirectory,
+          packageName,
+          tabLength,
+          idl
+      );
+      this.latestCall.getAndAccumulate(now, MAX);
+      generator.run();
+      generator.addExports(exports);
+      this.latestCall.getAndAccumulate(now + ((System.currentTimeMillis() - now) >> 1), MAX);
+      this.errorCount.getAndUpdate(x -> x > 0 ? x - 1 : x);
     }
   }
 

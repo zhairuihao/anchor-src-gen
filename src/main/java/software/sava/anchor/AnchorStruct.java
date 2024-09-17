@@ -24,7 +24,8 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
   private static final String LENGTH_ADD_ALIGN_TAB = " ".repeat("retur".length());
 
   static AnchorStruct parseStruct(final JsonIterator ji) {
-    return new AnchorStruct(parseLowerList(ji));
+    final var fields = parseLowerList(ji);
+    return new AnchorStruct(fields);
   }
 
   static String generateRecord(final GenSrcContext genSrcContext,

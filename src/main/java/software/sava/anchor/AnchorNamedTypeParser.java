@@ -69,7 +69,7 @@ final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, Ch
       }
       this.docs = docs;
     } else if (fieldEquals("fields", buf, offset, len)) {
-      this.type = new AnchorTypeContextList(ElementFactory.parseList(ji, LOWER_FACTORY, this));
+      this.type = AnchorTypeContextList.createList(ElementFactory.parseList(ji, LOWER_FACTORY, this));
     } else if (fieldEquals("index", buf, offset, len)) {
       this.index = ji.readBoolean();
     } else if (fieldEquals("name", buf, offset, len)) {
@@ -79,9 +79,12 @@ final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, Ch
       this.type = new AnchorOption(parseTypeContext(ji));
     } else if (fieldEquals("type", buf, offset, len)) {
       this.type = parseTypeContext(ji);
+    } else if (fieldEquals("array", buf, offset, len)) {
+      this.type = AnchorArray.parseArray(ji);
+    } else if (fieldEquals("defined", buf, offset, len)) {
+      this.type = AnchorDefined.parseDefined(ji);
     } else {
-      System.out.println(new String(buf, offset, len));
-      ji.skip();
+      throw new IllegalStateException("Unhandled defined type field: " + new String(buf, offset, len));
     }
     return true;
   }

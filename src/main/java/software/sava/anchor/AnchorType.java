@@ -14,6 +14,7 @@ import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 
 public enum AnchorType {
 
+  alias,
   array,
   bool(boolean.class, Boolean.class, 1),
   bytes(byte[].class, -1),
@@ -89,6 +90,8 @@ public enum AnchorType {
       return struct;
     } else if (fieldEquals("vec", buf, offset, len)) {
       return vec;
+    } else if (fieldEquals("alias", buf, offset, len)) {
+      return alias;
     } else {
       throw throwUnsupportedType(buf, offset, len);
     }
@@ -153,6 +156,11 @@ public enum AnchorType {
         anchorType = ji.applyChars(ANCHOR_TYPE_PARSER);
       }
       return switch (anchorType) {
+        case alias -> {
+          final var typeContext = parseContextType(ji.skipUntil("value"));
+          ji.closeObj();
+          yield typeContext;
+        }
         case array -> AnchorArray.parseArray(ji);
         case defined -> AnchorDefined.parseDefined(ji);
         case _enum -> AnchorEnum.parseEnum(ji);

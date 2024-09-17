@@ -23,7 +23,12 @@ public record AnchorNamedType(Discriminator discriminator,
                                            final List<String> docs,
                                            final boolean index) {
     if (name == null) {
-      return new AnchorNamedType(discriminator, '_' + type.type().name(), type, docs, index);
+      return new AnchorNamedType(
+          discriminator, '_' + type.type().name(),
+          type,
+          docs == null ? NO_DOCS : docs,
+          index
+      );
     } else {
       return new AnchorNamedType(
           discriminator,
@@ -39,6 +44,16 @@ public record AnchorNamedType(Discriminator discriminator,
                                            final String name,
                                            final AnchorTypeContext type) {
     return createType(discriminator, name, type, NO_DOCS, false);
+  }
+
+  public AnchorNamedType rename(final String newName) {
+    return new AnchorNamedType(
+        discriminator,
+        newName,
+        type,
+        docs,
+        index
+    );
   }
 
   public String docComments() {

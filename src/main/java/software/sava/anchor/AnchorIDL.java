@@ -30,7 +30,7 @@ public record AnchorIDL(String version,
     try (final var ji = JsonIterator.parse(json)) {
       ji.testObject(parser);
       return parser.createIDL(json);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new RuntimeException(e);
     }
   }

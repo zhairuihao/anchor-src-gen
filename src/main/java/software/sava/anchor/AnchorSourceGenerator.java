@@ -22,6 +22,8 @@ public record AnchorSourceGenerator(Path sourceDirectory,
                                     int tabLength,
                                     AnchorIDL idl) implements Runnable {
 
+  private static final System.Logger logger = System.getLogger(AnchorSourceGenerator.class.getName());
+
   static String removeBlankLines(final String str) {
     return Arrays.stream(str.split("\n"))
         .map(line -> !line.isEmpty() && line.isBlank() ? "" : line)
@@ -160,7 +162,7 @@ public record AnchorSourceGenerator(Path sourceDirectory,
           throw new UncheckedIOException("Failed to write Account source code file.", e);
         }
       } else {
-        throw new IllegalStateException("Unexpected anchor account type " + namedType.type());
+        throw new IllegalStateException("Unexpected anchor account type " + namedType);
       }
     }
 
@@ -169,18 +171,22 @@ public record AnchorSourceGenerator(Path sourceDirectory,
         continue;
       }
       genSrcContext.clearImports();
-      final String sourceCode;
-      if (namedType.type() instanceof AnchorStruct struct) {
-        sourceCode = struct.generateSource(genSrcContext, genSrcContext.typePackage(), namedType, false, null);
-      } else if (namedType.type() instanceof AnchorEnum anchorEnum) {
-        sourceCode = anchorEnum.generateSource(genSrcContext, namedType);
-      } else {
-        throw new IllegalStateException("Unexpected anchor defined type " + namedType.type());
-      }
-      try {
-        Files.writeString(typesDir.resolve(namedType.name() + ".java"), sourceCode, CREATE, TRUNCATE_EXISTING, WRITE);
-      } catch (final IOException e) {
-        throw new UncheckedIOException("Failed to write source code file.", e);
+      final var sourceCode = switch (namedType.type()) {
+        case AnchorStruct struct ->
+            struct.generateSource(genSrcContext, genSrcContext.typePackage(), namedType, false, null);
+        case AnchorEnum anchorEnum -> anchorEnum.generateSource(genSrcContext, namedType);
+        case AnchorVector anchorVector -> {
+          logger.log(System.Logger.Level.WARNING, "Ignoring defined vector type: " + anchorVector);
+          yield null;
+        }
+        case null, default -> throw new IllegalStateException("Unexpected anchor defined type " + namedType);
+      };
+      if (sourceCode != null) {
+        try {
+          Files.writeString(typesDir.resolve(namedType.name() + ".java"), sourceCode, CREATE, TRUNCATE_EXISTING, WRITE);
+        } catch (final IOException e) {
+          throw new UncheckedIOException("Failed to write source code file.", e);
+        }
       }
     }
 
