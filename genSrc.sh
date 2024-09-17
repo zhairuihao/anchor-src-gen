@@ -18,7 +18,7 @@ javaArgs=(
 )
 
 screen=0;
-targetJavaVersion=22
+targetJavaVersion=23
 logLevel="INFO";
 tabLength=2;
 sourceDirectory="src/main/java";
