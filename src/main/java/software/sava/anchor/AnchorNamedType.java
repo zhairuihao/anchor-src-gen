@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 public record AnchorNamedType(Discriminator discriminator,
                               String name,
+                              AnchorSerialization serialization,
+                              AnchorRepresentation representation,
                               AnchorTypeContext type,
                               List<String> docs,
                               boolean index) {
@@ -19,12 +21,16 @@ public record AnchorNamedType(Discriminator discriminator,
 
   public static AnchorNamedType createType(final Discriminator discriminator,
                                            final String name,
+                                           final AnchorSerialization serialization,
+                                           final AnchorRepresentation representation,
                                            final AnchorTypeContext type,
                                            final List<String> docs,
                                            final boolean index) {
     if (name == null) {
       return new AnchorNamedType(
           discriminator, '_' + type.type().name(),
+          serialization == null ? AnchorSerialization.borsh : serialization,
+          representation,
           type,
           docs == null ? NO_DOCS : docs,
           index
@@ -33,6 +39,8 @@ public record AnchorNamedType(Discriminator discriminator,
       return new AnchorNamedType(
           discriminator,
           RESERVED_NAMES.contains(name) ? '_' + name : name,
+          serialization == null ? AnchorSerialization.borsh : serialization,
+          representation,
           type,
           docs == null ? NO_DOCS : docs,
           index
@@ -43,13 +51,15 @@ public record AnchorNamedType(Discriminator discriminator,
   public static AnchorNamedType createType(final Discriminator discriminator,
                                            final String name,
                                            final AnchorTypeContext type) {
-    return createType(discriminator, name, type, NO_DOCS, false);
+    return createType(discriminator, name, null, null, type, NO_DOCS, false);
   }
 
   public AnchorNamedType rename(final String newName) {
     return new AnchorNamedType(
         discriminator,
         newName,
+        serialization,
+        representation,
         type,
         docs,
         index

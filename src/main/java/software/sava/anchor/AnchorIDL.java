@@ -2,6 +2,7 @@ package software.sava.anchor;
 
 import software.sava.core.accounts.ProgramDerivedAddress;
 import software.sava.core.accounts.PublicKey;
+import software.sava.rpc.json.PublicKeyEncoding;
 import systems.comodal.jsoniter.FieldBufferPredicate;
 import systems.comodal.jsoniter.JsonIterator;
 
@@ -10,11 +11,14 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static software.sava.anchor.AnchorNamedType.NO_DOCS;
 import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 import static systems.comodal.jsoniter.factory.ElementFactory.parseList;
 
-public record AnchorIDL(String version,
+// https://github.com/coral-xyz/anchor/blob/master/ts/packages/anchor/src/idl.ts
+public record AnchorIDL(PublicKey address,
+                        String version,
                         String name,
                         List<AnchorConstant> constants,
                         List<AnchorInstruction> instructions,
@@ -22,7 +26,8 @@ public record AnchorIDL(String version,
                         Map<String, AnchorNamedType> types,
                         List<AnchorNamedType> events,
                         List<AnchorErrorRecord> errors,
-                        Map<String, String> metaData,
+                        AnchorIdlMetadata metaData,
+                        List<String> docs,
                         byte[] json) {
 
   public static AnchorIDL parseIDL(final byte[] json) {
@@ -169,9 +174,9 @@ public record AnchorIDL(String version,
     return removeBlankLines(builder.append('}').toString());
   }
 
-
   private static final class Parser implements FieldBufferPredicate {
 
+    private PublicKey address;
     private String version;
     private String name;
     private List<AnchorConstant> constants;
@@ -180,15 +185,17 @@ public record AnchorIDL(String version,
     private Map<String, AnchorNamedType> types;
     private List<AnchorNamedType> events;
     private List<AnchorErrorRecord> errors;
-    private Map<String, String> metaData;
+    private AnchorIdlMetadata metaData;
+    private List<String> docs;
 
     private Parser() {
     }
 
     private AnchorIDL createIDL(final byte[] json) {
       return new AnchorIDL(
-          version == null ? metaData.get("version") : version,
-          name == null ? metaData.get("name") : name,
+          address,
+          version == null ? metaData.version() : version,
+          name == null ? metaData.name() : name,
           constants,
           instructions,
           accounts == null ? Map.of() : accounts,
@@ -196,13 +203,16 @@ public record AnchorIDL(String version,
           events == null ? List.of() : events,
           errors,
           metaData,
+          docs == null ? NO_DOCS : docs,
           json
       );
     }
 
     @Override
     public boolean test(final char[] buf, final int offset, final int len, final JsonIterator ji) {
-      if (fieldEquals("version", buf, offset, len)) {
+      if (fieldEquals("address", buf, offset, len)) {
+        this.address = PublicKeyEncoding.parseBase58Encoded(ji);
+      } else if (fieldEquals("version", buf, offset, len)) {
         this.version = ji.readString();
       } else if (fieldEquals("name", buf, offset, len)) {
         this.name = ji.readString();
@@ -219,19 +229,29 @@ public record AnchorIDL(String version,
       } else if (fieldEquals("events", buf, offset, len)) {
         this.events = parseList(ji, AnchorNamedTypeParser.UPPER_FACTORY).stream()
             .map(nt -> nt.type() instanceof AnchorTypeContextList list
-                ? new AnchorNamedType(null, nt.name(), new AnchorStruct(list.fields()), nt.docs(), nt.index())
-                : nt)
+                ? new AnchorNamedType(
+                null,
+                nt.name(),
+                AnchorSerialization.borsh,
+                null,
+                new AnchorStruct(list.fields()),
+                nt.docs(),
+                nt.index())
+                : nt
+            )
             .toList();
       } else if (fieldEquals("errors", buf, offset, len)) {
         this.errors = parseList(ji, AnchorErrorParser.FACTORY);
       } else if (fieldEquals("metadata", buf, offset, len)) {
-        final var metaData = new HashMap<String, String>();
-        for (String field; (field = ji.readObjField()) != null; ) {
-          metaData.put(field, ji.readString());
+        this.metaData = AnchorIdlMetadata.parseMetadata(ji);
+      } else if (fieldEquals("docs", buf, offset, len)) {
+        final var docs = new ArrayList<String>();
+        while (ji.readArray()) {
+          docs.add(ji.readString());
         }
-        this.metaData = metaData;
+        this.docs = docs;
       } else {
-        ji.skip();
+        throw new IllegalStateException("Unhandled AnchorIDL field " + new String(buf, offset, len));
       }
       return true;
     }

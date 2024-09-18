@@ -127,7 +127,11 @@ public record AnchorDefined(String typeName) implements AnchorReferenceTypeConte
 
   @Override
   public boolean isFixedLength(final Map<String, AnchorNamedType> definedTypes) {
-    return definedTypes.get(typeName).type().isFixedLength(definedTypes);
+    final var definedType = definedTypes.get(typeName);
+    if (definedType == null) {
+      throw new IllegalStateException("Failed to find defined type " + typeName);
+    }
+    return definedType.type().isFixedLength(definedTypes);
   }
 
   @Override

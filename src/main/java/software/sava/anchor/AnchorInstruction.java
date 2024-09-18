@@ -225,6 +225,8 @@ public record AnchorInstruction(Discriminator discriminator,
       final var namedType = new AnchorNamedType(
           discriminator,
           typeName,
+          null,
+          null,
           struct,
           List.of(),
           false

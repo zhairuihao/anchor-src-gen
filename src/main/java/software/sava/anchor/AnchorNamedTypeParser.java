@@ -21,6 +21,8 @@ final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, Ch
   private final boolean firstUpper;
   private Discriminator discriminator;
   private String name;
+  private AnchorSerialization serialization;
+  private AnchorRepresentation representation;
   private AnchorTypeContext type;
   private List<String> docs;
   private boolean index;
@@ -54,7 +56,7 @@ final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, Ch
 
   @Override
   public AnchorNamedType create() {
-    return AnchorNamedType.createType(discriminator, name, type, docs, index);
+    return AnchorNamedType.createType(discriminator, name, serialization, representation, type, docs, index);
   }
 
 
@@ -83,6 +85,10 @@ final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, Ch
       this.type = AnchorArray.parseArray(ji);
     } else if (fieldEquals("defined", buf, offset, len)) {
       this.type = AnchorDefined.parseDefined(ji);
+    } else if (fieldEquals("serialization", buf, offset, len)) {
+      this.serialization = AnchorSerialization.valueOf(ji.readString());
+    } else if (fieldEquals("repr", buf, offset, len)) {
+      this.representation = AnchorTransparentRepresentation.parseRepresentation(ji);
     } else {
       throw new IllegalStateException("Unhandled defined type field: " + new String(buf, offset, len));
     }

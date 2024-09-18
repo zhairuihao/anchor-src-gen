@@ -38,11 +38,11 @@ public record AnchorSourceGenerator(Path sourceDirectory,
             return null;
           } else {
             final byte[] json = idl.json();
-//            try {
-//              Files.write(Path.of(idlAddress + "_idl.json"), json, CREATE, TRUNCATE_EXISTING, WRITE);
-//            } catch (final IOException e) {
-//              throw new UncheckedIOException(e);
-//            }
+            try {
+              Files.write(Path.of(idlAddress + "_idl.json"), json, CREATE, TRUNCATE_EXISTING, WRITE);
+            } catch (final IOException e) {
+              throw new UncheckedIOException(e);
+            }
             return AnchorIDL.parseIDL(json);
           }
         });
@@ -149,11 +149,11 @@ public record AnchorSourceGenerator(Path sourceDirectory,
     final var types = idl.types();
     final var accounts = new HashSet<String>();
     for (final var account : idl.accounts().values()) {
+      genSrcContext.clearImports();
       final var namedType = account.type() == null
           ? types.get(account.name())
           : account;
       accounts.add(namedType.name());
-      genSrcContext.clearImports();
       if (namedType.type() instanceof AnchorStruct struct) {
         final var sourceCode = struct.generateSource(genSrcContext, genSrcContext.typePackage(), namedType, true, account);
         try {
@@ -190,14 +190,17 @@ public record AnchorSourceGenerator(Path sourceDirectory,
       }
     }
 
-    for (final var namedType : idl.events()) {
+    for (final var event : idl.events()) {
       genSrcContext.clearImports();
+      final var namedType = event.type() == null
+          ? types.get(event.name())
+          : event;
       try {
         if (namedType.type() instanceof AnchorStruct struct) {
           final var sourceCode = struct.generateSource(genSrcContext, genSrcContext.typePackage(), namedType, false, null);
           Files.writeString(typesDir.resolve(namedType.name() + ".java"), sourceCode, CREATE, TRUNCATE_EXISTING, WRITE);
         } else {
-          throw new IllegalStateException("Unexpected anchor defined type " + namedType.type());
+          throw new IllegalStateException("Unexpected anchor defined event " + namedType);
         }
       } catch (final IOException e) {
         throw new UncheckedIOException("Failed to write Event source code file.", e);

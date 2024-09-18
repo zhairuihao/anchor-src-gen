@@ -21,6 +21,7 @@ final class AnchorAccountMetaParser implements ElementFactory<AnchorAccountMeta>
   private boolean writable;
   private boolean isOptional;
   private boolean signer;
+  private String desc;
   private List<String> docs;
   private AnchorPDA pda;
   private List<String> relations;
@@ -37,7 +38,8 @@ final class AnchorAccountMetaParser implements ElementFactory<AnchorAccountMeta>
         name,
         writable,
         signer,
-        docs == null ? NO_DOCS : docs,
+        desc,
+        docs == null ? desc == null || desc.isBlank() ? NO_DOCS : List.of(desc) : docs,
         isOptional,
         pda,
         relations
@@ -56,6 +58,8 @@ final class AnchorAccountMetaParser implements ElementFactory<AnchorAccountMeta>
       this.accounts = accounts;
     } else if (fieldEquals("address", buf, offset, len)) {
       this.address = PublicKeyEncoding.parseBase58Encoded(ji);
+    } else if (fieldEquals("desc", buf, offset, len)) {
+      this.desc = ji.readString();
     } else if (fieldEquals("docs", buf, offset, len)) {
       final var docs = new ArrayList<String>();
       while (ji.readArray()) {
