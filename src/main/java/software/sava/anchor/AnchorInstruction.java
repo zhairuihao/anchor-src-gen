@@ -232,7 +232,19 @@ public record AnchorInstruction(Discriminator discriminator,
           false
       );
       final var sourceCode = struct.generateSource(genSrcContext, namedType);
-      builder.append(sourceCode.indent(genSrcContext.tabLength()));
+      final var injectKey = "implements Borsh {";
+      int offset = sourceCode.indexOf(injectKey) + injectKey.length();
+      final var header = sourceCode.substring(0, offset);
+      final var readHelper = String.format("""
+              
+              
+              public static %s read(final Instruction instruction) {
+              %sreturn read(instruction.data(), instruction.offset());
+              }""",
+          typeName, tab
+      ).indent(genSrcContext.tabLength());
+      final var withHelper = header + readHelper + sourceCode.substring(offset + 1);
+      builder.append(withHelper.indent(genSrcContext.tabLength()));
     }
 
     return removeBlankLines(builder.toString());
