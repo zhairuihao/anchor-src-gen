@@ -22,6 +22,7 @@ public record AnchorDefined(String typeName) implements AnchorReferenceTypeConte
     if (fieldEquals("name", buf, offset, len)) {
       builder.name = AnchorUtil.camelCase(ji.readString(), true);
     } else {
+      // https://github.com/coral-xyz/anchor/blob/020a3046582944030f17b6524006eeaf26951cb8/ts/packages/anchor/src/idl.ts#L255
       throw new IllegalStateException("Unhandled defined type field " + new String(buf, offset, len));
     }
     return true;

@@ -55,6 +55,10 @@ Leaf links provide concrete examples.
 * Generics
 * Constants
 
+#### Missed
+
+* 256 bit integers
+
 #### Ideas:
 
 * Support user provided common accounts to reduce wiring required to call instruction methods.
