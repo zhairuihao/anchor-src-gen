@@ -16,6 +16,7 @@ import static software.sava.anchor.AnchorSourceGenerator.removeBlankLines;
 import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 import static systems.comodal.jsoniter.factory.ElementFactory.parseList;
 
+// https://github.com/acheroncrypto/anchor/blob/fix-idl/lang/syn/src/idl/types.rs
 // https://github.com/coral-xyz/anchor/blob/master/ts/packages/anchor/src/idl.ts
 public record AnchorIDL(PublicKey address,
                         String version,

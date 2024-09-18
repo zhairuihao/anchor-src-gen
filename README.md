@@ -20,7 +20,6 @@ Leaf links provide concrete examples.
 - Convenient auto-wiring
   of [common accounts](https://github.com/sava-software/sava/blob/main/core/src/main/java/software/sava/core/accounts/SolanaAccounts.java)
     - [Glam Jupiter Swap](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/glam/anchor/GlamProgram.java#L325)
-    - TODO: Support user provided common account interfaces.
 
 ### Defined Types
 
@@ -47,9 +46,18 @@ Leaf links provide concrete examples.
     - Data size filters
         * [Filter by Drift User account size](https://github.com/sava-software/anchor-programs/blob/250f1ede541e6c617a29694a0d4ba442fe2e3293/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/User.java#L87)
 
-### Constants
+### TODO
 
-TODO
+#### New to anchor 0.30
+
+* Event discriminators
+* Bytemuck serialization (previously only borsh)
+* Generics
+* Constants
+
+#### Ideas:
+
+* Support user provided common accounts to reduce wiring required to call instruction methods.
 
 ## Generate Source
 
