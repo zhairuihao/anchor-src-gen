@@ -68,7 +68,7 @@ final class AnchorAccountMetaParser implements ElementFactory<AnchorAccountMeta>
       this.docs = docs;
     } else if (fieldEquals("isMut", buf, offset, len) || fieldEquals("writable", buf, offset, len)) {
       this.writable = ji.readBoolean();
-    } else if (fieldEquals("isOptional", buf, offset, len)) {
+    } else if (fieldEquals("optional", buf, offset, len) || fieldEquals("isOptional", buf, offset, len)) {
       this.isOptional = ji.readBoolean();
     } else if (fieldEquals("isSigner", buf, offset, len) || fieldEquals("signer", buf, offset, len)) {
       this.signer = ji.readBoolean();
