@@ -27,6 +27,7 @@ public enum AnchorType {
   i32(int.class, OptionalInt.class, Integer.BYTES),
   i64(long.class, OptionalLong.class, Long.BYTES),
   i128(BigInteger.class, Long.BYTES << 1),
+  i256(BigInteger.class, Long.BYTES << 2),
   // i256(BigInteger.class, Long.BYTES << 2),
   option,
   publicKey(PublicKey.class, PublicKey.PUBLIC_KEY_LENGTH),
@@ -37,6 +38,7 @@ public enum AnchorType {
   u32(int.class, OptionalInt.class, Integer.BYTES),
   u64(long.class, OptionalLong.class, Long.BYTES),
   u128(BigInteger.class, Long.BYTES << 1),
+  u256(BigInteger.class, Long.BYTES << 2),
   // u256(BigInteger.class, Long.BYTES << 2),
   vec;
 

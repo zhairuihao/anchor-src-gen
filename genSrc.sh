@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# ./genSrc.sh --log=[INFO|WARN|DEBUG] --tabLength=2 --sourceDirectory="src/main/java" --basePackageName="software.sava.anchor.gen" --programs="main_net_programs.json" --screen=[1|0] --rpc=""
-# ./genSrc.sh --log="INFO" --tabLength=2 --sourceDirectory="src/main/java" --basePackageName="software.sava.anchor.gen" --rpc=""
 set -e
 
 readonly moduleName="software.sava.anchor_src_gen"

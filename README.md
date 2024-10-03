@@ -94,6 +94,39 @@ Replace the values below to fit your needs.
 - [sava-core](https://github.com/sava-software/sava)
 - [sava-rpc](https://github.com/sava-software/sava)
 
+### Add Dependency
+
+Create
+a [GitHub user access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic)
+with read access to GitHub Packages.
+
+Then add the following to your Gradle build script.
+
+```groovy
+repositories {
+  maven {
+    url = "https://maven.pkg.github.com/sava-software/sava"
+    credentials {
+      username = GITHUB_USERNAME
+      password = GITHUB_PERSONAL_ACCESS_TOKEN
+    }
+  }
+  maven {
+    url = "https://maven.pkg.github.com/sava-software/solana-programs"
+  }
+  maven {
+    url = "https://maven.pkg.github.com/sava-software/anchor-src-gen"
+  }
+}
+
+dependencies {
+  implementation "software.sava:sava-core:$VERSION"
+  implementation "software.sava:sava-rpc:$VERSION"
+  implementation "software.sava:solana-programs:$VERSION"
+  implementation "software.sava:anchor-src-gen:$VERSION"
+}
+```
+
 ## Contribution
 
 Unit tests are needed and welcomed. Otherwise, please open an issue or send an email before working on a pull request.
