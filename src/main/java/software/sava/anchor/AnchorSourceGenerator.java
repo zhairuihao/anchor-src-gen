@@ -107,9 +107,21 @@ public record AnchorSourceGenerator(Path sourceDirectory,
     final var staticImports = new TreeSet<String>();
     final var accountMethods = HashMap.<PublicKey, AccountReferenceCall>newHashMap(1_024);
     AccountReferenceCall.generateMainNetNativeAccounts(accountMethods);
+
+    final var definedTypes = HashMap.<String, AnchorNamedType>newHashMap(idl.types().size() + idl.accounts().size());
+    definedTypes.putAll(idl.types());
+    for (final var entry : idl.accounts().entrySet()) {
+      final var namedType = entry.getValue();
+      if (namedType.type() instanceof AnchorStruct || namedType.type() instanceof AnchorEnum) {
+        if (definedTypes.put(entry.getKey(), namedType) != null) {
+          throw new IllegalStateException("Defined account type name collision with defined type " + entry.getKey());
+        }
+      }
+    }
+
     final var genSrcContext = new GenSrcContext(
         idl.accounts().keySet(),
-        idl.types(),
+        definedTypes,
         imports,
         staticImports,
         tab,

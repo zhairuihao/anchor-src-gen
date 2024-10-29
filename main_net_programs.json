@@ -1,6 +1,7 @@
 [
   {
-    "name": "Glam",
-    "program": "GLAMpLuXu78TA4ao3DPZvT1zQ7woxoQ8ahdYbhnqY9mP"
+    "name": "Pyth Receiver Oracle Program",
+    "program": "rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ",
+    "package": "pyth.receiver"
   }
 ]

@@ -2,8 +2,10 @@ package software.sava.anchor;
 
 import software.sava.core.programs.Discriminator;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public record AnchorNamedType(Discriminator discriminator,
@@ -66,8 +68,16 @@ public record AnchorNamedType(Discriminator discriminator,
     );
   }
 
+  private static final Pattern NEW_LINE_PATTERN = Pattern.compile("\n");
+
+  public static String formatComments(final Collection<String> docs) {
+    return docs.stream()
+        .map(doc -> String.format("// %s\n", NEW_LINE_PATTERN.matcher(doc).replaceAll("\n// ")))
+        .collect(Collectors.joining());
+  }
+
   public String docComments() {
-    return docs.stream().map(doc -> String.format("// %s\n", doc)).collect(Collectors.joining());
+    return formatComments(this.docs);
   }
 
   public int generateSerialization(final GenSrcContext genSrcContext,
