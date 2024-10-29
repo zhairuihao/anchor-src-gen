@@ -25,7 +25,7 @@ public record AnchorArray(AnchorTypeContext genericType,
     switch (genericType.type()) {
       case publicKey -> genSrcContext.addImport(PublicKey.class);
       case string -> genSrcContext.addImport(String.class);
-      case u128 -> genSrcContext.addImport(BigInteger.class);
+      case u128, u256, i128, i256 -> genSrcContext.addImport(BigInteger.class);
     }
   }
 

@@ -52,7 +52,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
             return Filter.createMemCompFilter(%s, _data);""", varName, varName, offsetVarName);
         case i8, u8 ->
             String.format("return Filter.createMemCompFilter(%s, new byte[]{(byte) 1, (byte) %s});", offsetVarName, varName);
-        case f32, f64, i16, u16, i32, u32, i64, u64, i128, u128 -> String.format("""
+        case f32, f64, i16, u16, i32, u32, i64, u64, i128, u128, i256, u256 -> String.format("""
                 final byte[] _data = new byte[%d];
                 _data[0] = 1;
                 %s
@@ -81,7 +81,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
             return Filter.createMemCompFilter(%s, _data);""", varName, varName, offsetVarName);
         case i8, u8 ->
             String.format("return Filter.createMemCompFilter(%s, new byte[]{(byte) %s});", offsetVarName, varName);
-        case f32, f64, i16, u16, i32, u32, i64, u64, i128, u128 -> String.format("""
+        case f32, f64, i16, u16, i32, u32, i64, u64, i128, u128, i256, u256 -> String.format("""
             final byte[] _data = new byte[%d];
             %s
             return Filter.createMemCompFilter(%s, _data);""", type.dataLength(), generateWrite(varName).replaceFirst("i", "0"), offsetVarName);
@@ -130,7 +130,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
     } else {
       switch (type) {
         case publicKey -> genSrcContext.addImport(PublicKey.class);
-        case i128, u128 -> genSrcContext.addImport(BigInteger.class);
+        case i128, u128, i256, u256 -> genSrcContext.addImport(BigInteger.class);
         default -> {
           if (optional) {
             genSrcContext.addImport(type.optionalJavaType());
@@ -165,6 +165,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       case i32, u32 -> genSrcContext.addStaticImport(ByteUtil.class, "getInt32LE");
       case i64, u64 -> genSrcContext.addStaticImport(ByteUtil.class, "getInt64LE");
       case i128, u128 -> genSrcContext.addStaticImport(ByteUtil.class, "getInt128LE");
+      case i256, u256 -> genSrcContext.addStaticImport(ByteUtil.class, "getInt256LE");
       case publicKey -> genSrcContext.addStaticImport(PublicKey.class, "readPubKey");
     }
     return switch (type) {
@@ -177,6 +178,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       case i32, u32 -> String.format("getInt32LE(_data, %s)", offsetVarName);
       case i64, u64 -> String.format("getInt64LE(_data, %s)", offsetVarName);
       case i128, u128 -> String.format("getInt128LE(_data, %s)", offsetVarName);
+      case i256, u256 -> String.format("getInt256LE(_data, %s)", offsetVarName);
       case publicKey -> String.format("readPubKey(_data, %s)", offsetVarName);
       default -> throw new IllegalStateException("Unexpected type: " + type);
     };
@@ -231,6 +233,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       case i32, u32 -> "putInt32LE(_data, i, %s);";
       case i64, u64 -> "putInt64LE(_data, i, %s);";
       case i128, u128 -> "putInt128LE(_data, i, %s);";
+      case i256, u256 -> "putInt256LE(_data, i, %s);";
       case publicKey -> "%s.write(_data, i);";
       default -> throw new IllegalStateException("Unexpected type: " + type);
     }, varName);
@@ -253,6 +256,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
         case i32, u32 -> genSrcContext.addStaticImport(ByteUtil.class, "putInt32LE");
         case i64, u64 -> genSrcContext.addStaticImport(ByteUtil.class, "putInt64LE");
         case i128, u128 -> genSrcContext.addStaticImport(ByteUtil.class, "putInt128LE");
+        case i256, u256 -> genSrcContext.addStaticImport(ByteUtil.class, "putInt256LE");
       }
       final var write = generateWrite(varName);
       if (hasNext) {
@@ -306,6 +310,10 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
         genSrcContext.addImport(BigInteger.class);
         yield RustEnum.EnumInt128.class;
       }
+      case i256, u256 -> {
+        genSrcContext.addImport(BigInteger.class);
+        yield RustEnum.EnumInt256.class;
+      }
       case publicKey -> {
         genSrcContext.addImport(PublicKey.class);
         yield RustEnum.EnumPublicKey.class;
@@ -319,7 +327,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       case f64 -> "(double val)";
       case i8, u8, i16, u16, i32, u32 -> "(int val)";
       case i64, u64 -> "(long val)";
-      case i128, u128 -> "(BigInteger val)";
+      case i128, u128, i256, u256 -> "(BigInteger val)";
       case publicKey -> "(PublicKey val)";
       case bytes -> "(byte[] val)";
       default -> throw new IllegalStateException("Unexpected type: " + type);
@@ -409,7 +417,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
     } else {
       switch (type) {
         case publicKey -> genSrcContext.addImport(PublicKey.class);
-        case i128, u128 -> genSrcContext.addImport(BigInteger.class);
+        case i128, u128, i256, u256 -> genSrcContext.addImport(BigInteger.class);
       }
       dataBuilder.append(generateWrite(genSrcContext, varName, hasNext));
       return type.dataLength();

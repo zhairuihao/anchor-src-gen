@@ -18,7 +18,8 @@ public record AnchorNamedType(Discriminator discriminator,
 
   static final List<String> NO_DOCS = List.of();
   private static final Set<String> RESERVED_NAMES = Set.of(
-      "new"
+      "new",
+      "offset"
   );
 
   public static AnchorNamedType createType(final Discriminator discriminator,
@@ -72,7 +73,7 @@ public record AnchorNamedType(Discriminator discriminator,
 
   public static String formatComments(final Collection<String> docs) {
     return docs.stream()
-        .map(doc -> String.format("// %s\n", NEW_LINE_PATTERN.matcher(doc).replaceAll("\n// ")))
+        .map(doc -> String.format("// %s\n", NEW_LINE_PATTERN.matcher(doc).replaceAll("\n//")))
         .collect(Collectors.joining());
   }
 

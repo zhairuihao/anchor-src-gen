@@ -95,8 +95,9 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
       final int tabLength = genSrcContext.tabLength();
       genSrcContext.addImport(RustEnum.class);
       final var builder = new StringBuilder(2_048);
+      builder.append('\n');
       builder.append(context.docComments());
-      builder.append(String.format("\npublic sealed interface %s extends RustEnum permits\n", name));
+      builder.append(String.format("public sealed interface %s extends RustEnum permits\n", name));
 
       final var iterator = values.iterator();
       for (AnchorNamedType next; ; ) {

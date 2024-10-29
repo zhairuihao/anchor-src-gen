@@ -258,15 +258,20 @@ public record AnchorPDA(List<Seed> seeds, PublicKey program) {
     final var signatureLine = tab + String.format("public static ProgramDerivedAddress %sPDA(", name);
     out.append(signatureLine);
     out.append("""
-        final PublicKey program,
-        """);
+        final PublicKey program""");
 
-    final var argTab = " ".repeat(signatureLine.length());
-    final var fields = seeds.stream()
+    final var fieldsList = seeds.stream()
         .map(seed -> seed.fieldName(genSrcContext))
         .filter(Objects::nonNull)
-        .collect(Collectors.joining(",\n" + argTab, argTab, ") {\n"));
-    out.append(fields);
+        .toList();
+    if (fieldsList.isEmpty()) {
+      out.append(") {\n");
+    } else {
+      final var argTab = " ".repeat(signatureLine.length());
+      final var fields = fieldsList.stream()
+          .collect(Collectors.joining(",\n" + argTab, ",\n" + argTab, ") {\n"));
+      out.append(fields);
+    }
 
     final var paramRefs = seeds.stream()
         .map(seed -> seed.varName(genSrcContext))

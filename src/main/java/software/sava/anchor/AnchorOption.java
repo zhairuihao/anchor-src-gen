@@ -12,7 +12,7 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
 
   private static String presentCode(final AnchorType anchorType, final String read) {
     return switch (anchorType) {
-      case array, bytes, string, vec, defined, i128, u128, publicKey, bool -> read;
+      case array, bytes, string, vec, defined, i128, u128, i256, u256, publicKey, bool -> read;
       case i8, u8, i16, u16, i32, u32 -> "OptionalInt.of(" + read + ')';
       case i64, u64 -> "OptionalLong.of(" + read + ')';
       case f32, f64 -> "OptionalDouble.of(" + read + ')';
@@ -22,7 +22,7 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
 
   private static String notPresentCode(final AnchorType anchorType) {
     return switch (anchorType) {
-      case array, bytes, string, vec, defined, i128, u128, publicKey, bool -> "null";
+      case array, bytes, string, vec, defined, i128, u128, i256, u256, publicKey, bool -> "null";
       case i8, u8, i16, u16, i32, u32 -> "OptionalInt.empty()";
       case i64, u64 -> "OptionalLong.empty()";
       case f32, f64 -> "OptionalDouble.empty()";
@@ -32,7 +32,7 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
 
   private static String presentCode(final AnchorType anchorType) {
     return switch (anchorType) {
-      case array, bytes, string, vec, defined, i128, u128, publicKey, bool -> " != null";
+      case array, bytes, string, vec, defined, i128, u128, i256, u256, publicKey, bool -> " != null";
       case i8, u8, i16, u16, i32, u32, i64, u64, f32, f64 -> ".isPresent()";
       default -> null;
     };
@@ -44,7 +44,7 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
       case string -> String.format("_%s == null || _%s.length == 0", varName, varName);
       case i8, u8, i16, u16, i32, u32, i64, u64, f32, f64 ->
           String.format("%s == null || %s.isEmpty()", varName, varName);
-      case defined, i128, u128, publicKey, bool -> String.format("%s == null", varName);
+      case defined, i128, u128, i256, u256, publicKey, bool -> String.format("%s == null", varName);
       default -> throw new UnsupportedOperationException("TODO: support optional " + anchorType);
     };
   }
@@ -257,6 +257,7 @@ public record AnchorOption(AnchorTypeContext genericType) implements AnchorRefer
         case i32, u32 -> RustEnum.OptionalEnumInt32.class;
         case i64, u64 -> RustEnum.OptionalEnumInt64.class;
         case i128, u128 -> RustEnum.OptionalEnumInt128.class;
+        case i256, u256 -> RustEnum.OptionalEnumInt256.class;
         case publicKey -> RustEnum.OptionalEnumPublicKey.class;
         default -> throw new IllegalStateException("Unexpected value: " + type);
       };

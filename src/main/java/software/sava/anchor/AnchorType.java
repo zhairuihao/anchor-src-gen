@@ -65,7 +65,11 @@ public enum AnchorType {
           case '6' -> u64;
           default -> throw throwUnsupportedType(buf, offset, len);
         };
-        case 4 -> u128;
+        case 4 -> switch (buf[offset + 1]) {
+          case '1' -> u128;
+          case '2' -> u256;
+          default -> throw throwUnsupportedType(buf, offset, len);
+        };
         default -> throw throwUnsupportedType(buf, offset, len);
       };
     }
@@ -140,10 +144,6 @@ public enum AnchorType {
 
   AnchorType(final Class<?> javaType, final int dataLength) {
     this(javaType, javaType, dataLength);
-  }
-
-  AnchorType(final Class<?> javaType) {
-    this(javaType, -1);
   }
 
   AnchorType() {
