@@ -56,7 +56,7 @@ final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
                 ? value.substring(1, value.length() - 1)
                 : value
         );
-        case u16 -> new AnchorIntConstant(this.name, Integer.parseInt(value.replaceAll("_", "")));
+        case u8, u16 -> new AnchorIntConstant(this.name, Integer.parseInt(value.replaceAll("_", "")));
         case u64, usize -> new AnchorLongConstant(this.name, Long.parseLong(value.replaceAll("_", "")));
       };
     } else {

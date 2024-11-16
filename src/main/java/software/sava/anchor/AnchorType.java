@@ -104,6 +104,7 @@ public enum AnchorType {
       throw throwUnsupportedType(buf, offset, len);
     }
   };
+
   static final CharBufferFunction<AnchorType> ANCHOR_OBJECT_TYPE_PARSER = (buf, offset, len) -> {
     if (fieldEquals("kind", buf, offset, len)) {
       return null;

@@ -39,7 +39,7 @@ public record AnchorArray(AnchorTypeContext genericType,
     final var typeName = genericType.realTypeName();
     final var depthCode = arrayDepthCode(depth);
     return genericType.type() == string
-        ? String.format("%s%s%s %s, byte%s %s", docs, typeName, depthCode, varName, depthCode, varName)
+        ? String.format("%s%s%s %s, byte[]%s _%s", docs, typeName, depthCode, varName, depthCode, varName)
         : String.format("%s%s%s %s", docs, typeName, depthCode, varName);
   }
 

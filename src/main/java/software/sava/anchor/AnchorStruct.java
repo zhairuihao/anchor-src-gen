@@ -125,7 +125,7 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
             byteLength += serializedLength;
           } else {
             final int serializedLength = type.fixedSerializedLength(genSrcContext);
-            if (serializedLength <= MAX_MEM_COMP_LENGTH) {
+            if (serializedLength > 0 && serializedLength <= MAX_MEM_COMP_LENGTH) {
               field.generateMemCompFilter(genSrcContext, memCompFiltersBuilder, offsetVarName);
             }
             byteLength = -1;
@@ -432,7 +432,8 @@ public record AnchorStruct(List<AnchorNamedType> fields) implements AnchorDefine
       final var type = field.type();
       len = field.type().serializedLength(genSrcContext, genSrcContext.isAccount(type.typeName()));
       if (len <= 0) {
-        throw throwInvalidDataType();
+//        throw throwInvalidDataType();
+        return len;
       } else {
         serializedLength += len;
       }

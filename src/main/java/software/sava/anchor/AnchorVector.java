@@ -128,7 +128,7 @@ public record AnchorVector(AnchorTypeContext genericType, int depth) implements 
           );
         }
       }
-      case null, default -> {
+      default -> {
         final var javaType = genericType.realTypeName();
         final var borshMethodName = depth == 1
             ? String.format("read%sVector", javaType)

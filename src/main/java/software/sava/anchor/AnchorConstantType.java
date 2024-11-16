@@ -9,6 +9,7 @@ public enum AnchorConstantType {
   bytes,
   i32,
   string,
+  u8,
   u16,
   u64,
   usize;
@@ -18,6 +19,8 @@ public enum AnchorConstantType {
       return i32;
     } else if (fieldEquals("string", buf, offset, len)) {
       return string;
+    } else if (fieldEquals("u8", buf, offset, len)) {
+      return u8;
     } else if (fieldEquals("u16", buf, offset, len)) {
       return u16;
     } else if (fieldEquals("u64", buf, offset, len)) {
