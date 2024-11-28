@@ -134,7 +134,6 @@ public record AnchorPDA(List<Seed> seeds, PublicKey program) {
 
     @Override
     public boolean equals(final Object o) {
-
       if (this == o) return true;
       if (o instanceof ConstSeed other) {
         return Arrays.equals(this.seed, other.seed);

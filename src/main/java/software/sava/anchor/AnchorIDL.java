@@ -41,6 +41,30 @@ public record AnchorIDL(PublicKey address,
     }
   }
 
+  public String generateConstantsSource(final GenSrcContext genSrcContext) {
+    if (constants == null || constants.isEmpty()) {
+      return null;
+    }
+
+    final var constantsBuilder = new StringBuilder(1_024);
+    for (final var constant : constants) {
+      constant.toSrc(genSrcContext, constantsBuilder);
+    }
+
+    final var out = new StringBuilder(constantsBuilder.length() << 1);
+    genSrcContext.appendPackage(out);
+    genSrcContext.appendImports(out);
+
+    final var className = genSrcContext.programName() + "Constants";
+    out.append(String.format("""
+        public final class %s {
+        
+        """, className));
+    out.append(constantsBuilder);
+
+    return closeClass(genSrcContext, className, out);
+  }
+
   public String generatePDASource(final GenSrcContext genSrcContext) {
     final var pdaAccounts = new TreeMap<String, AnchorPDA>();
     final var distinct = new HashSet<AnchorPDA>();
@@ -229,13 +253,13 @@ public record AnchorIDL(PublicKey address,
             .collect(Collectors.toUnmodifiableMap(AnchorNamedType::name, Function.identity()));
       } else if (fieldEquals("events", buf, offset, len)) {
         this.events = parseList(ji, AnchorNamedTypeParser.UPPER_FACTORY).stream()
-            .map(nt -> nt.type() instanceof AnchorTypeContextList list
+            .map(nt -> nt.type() instanceof AnchorTypeContextList(final List<AnchorNamedType> fields)
                 ? new AnchorNamedType(
                 null,
                 nt.name(),
                 AnchorSerialization.borsh,
                 null,
-                new AnchorStruct(list.fields()),
+                new AnchorStruct(fields),
                 nt.docs(),
                 nt.index())
                 : nt

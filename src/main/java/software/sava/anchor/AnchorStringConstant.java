@@ -10,7 +10,14 @@ public final class AnchorStringConstant extends BaseAnchorConstant {
   }
 
   @Override
-  public String stringValue() {
-    return value;
+  public void toSrc(final GenSrcContext genSrcContext, final StringBuilder src) {
+    src.append(String.format("""
+            %sprivate static final String %s = \"""
+            %s    %s\""";
+            
+            """,
+        genSrcContext.tab(), name,
+        genSrcContext.tab(), value
+    ));
   }
 }

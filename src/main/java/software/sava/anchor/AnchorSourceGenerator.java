@@ -149,6 +149,16 @@ public record AnchorSourceGenerator(Path sourceDirectory,
     }
 
     genSrcContext.clearImports();
+    final var constantsSource = idl.generateConstantsSource(genSrcContext);
+    if (constantsSource != null && !constantsSource.isBlank()) {
+      try {
+        Files.writeString(fullSrcDir.resolve(programName + "Constants.java"), constantsSource, CREATE, TRUNCATE_EXISTING, WRITE);
+      } catch (final IOException e) {
+        throw new UncheckedIOException("Failed to write Constants source code file.", e);
+      }
+    }
+
+    genSrcContext.clearImports();
     final var errorSource = idl.generateErrorSource(genSrcContext);
     if (errorSource != null && !errorSource.isBlank()) {
       try {

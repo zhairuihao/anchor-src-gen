@@ -1,10 +1,9 @@
 package software.sava.anchor;
 
-import java.util.Base64;
-
 public final class AnchorBytesConstant extends BaseAnchorConstant {
 
   private final byte[] value;
+  private static final byte b = -127;
 
   AnchorBytesConstant(final String name, final byte[] value) {
     super(name);
@@ -12,8 +11,18 @@ public final class AnchorBytesConstant extends BaseAnchorConstant {
   }
 
   @Override
-  public String stringValue() {
-    return Base64.getEncoder().encodeToString(value);
+  public void toSrc(final GenSrcContext genSrcContext, final StringBuilder src) {
+    final var elements = new String[value.length];
+    for (int i = 0; i < elements.length; i++) {
+      elements[i] = Byte.toString(value[i]);
+    }
+
+    src.append(String.format("""
+            %sprivate static final byte[] %s = new byte[]{%s};
+            
+            """,
+        genSrcContext.tab(), name, String.join(", ", elements)
+    ));
   }
 
   @Override

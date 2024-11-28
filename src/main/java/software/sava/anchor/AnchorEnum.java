@@ -152,9 +152,8 @@ public record AnchorEnum(List<AnchorNamedType> values) implements AnchorDefinedT
               %sreturn %d;
               }""", entry.name(), entry.name(), tab, ordinal).indent(tabLength << 1));
           builder.append(tab).append('}').append('\n');
-        } else if (type instanceof AnchorTypeContextList fieldsList) {
+        } else if (type instanceof AnchorTypeContextList(final List<AnchorNamedType> fields)) {
           builder.append('\n');
-          final var fields = fieldsList.fields();
           if (fields.size() == 1) {
             final var field = fields.getFirst();
             builder.append(field.type().generateEnumRecord(genSrcContext, name, entry, ordinal).indent(tabLength));

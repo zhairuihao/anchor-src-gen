@@ -10,12 +10,12 @@ public final class AnchorIntConstant extends BaseAnchorConstant {
   }
 
   @Override
-  public String stringValue() {
-    return Integer.toString(value);
-  }
-
-  @Override
-  public int intValue() {
-    return value;
+  public void toSrc(final GenSrcContext genSrcContext, final StringBuilder src) {
+    src.append(String.format("""
+            %sprivate static final int %s = %d;
+            
+            """,
+        genSrcContext.tab(), name, value
+    ));
   }
 }

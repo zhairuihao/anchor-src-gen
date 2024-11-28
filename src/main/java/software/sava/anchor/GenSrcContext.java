@@ -72,6 +72,10 @@ public record GenSrcContext(Set<String> accounts,
   }
 
   public void appendImports(final StringBuilder builder) {
+    if (imports.isEmpty() && staticImports.isEmpty()) {
+      return;
+    }
+
     String group, currentGroup = null;
     for (final var importLine : imports) {
       group = getPackageGroup(importLine);
