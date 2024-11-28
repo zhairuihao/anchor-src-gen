@@ -56,7 +56,7 @@ implement solutions.
 * Event discriminators
 * Bytemuck serialization (previously only borsh)
 * Generics
-* Constants
+* Constants (WIP)
 
 #### Missed
 

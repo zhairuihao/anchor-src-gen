@@ -12,7 +12,7 @@ public final class AnchorStringConstant extends BaseAnchorConstant {
   @Override
   public void toSrc(final GenSrcContext genSrcContext, final StringBuilder src) {
     src.append(String.format("""
-            %sprivate static final String %s = \"""
+            %spublic static final String %s = \"""
             %s    %s\""";
             
             """,

@@ -18,7 +18,7 @@ public final class AnchorBytesConstant extends BaseAnchorConstant {
     }
 
     src.append(String.format("""
-            %sprivate static final byte[] %s = new byte[]{%s};
+            %spublic static final byte[] %s = new byte[]{%s};
             
             """,
         genSrcContext.tab(), name, String.join(", ", elements)
