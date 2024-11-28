@@ -7,6 +7,7 @@ import software.sava.core.programs.Discriminator;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Base64;
 import java.util.function.BiFunction;
 import java.util.zip.InflaterInputStream;
 
@@ -33,6 +34,7 @@ public record OnChainIDL(PublicKey address,
         return new OnChainIDL(address, discriminator, authority, uncompressedData);
       }
     } catch (final IOException e) {
+      System.err.println(Base64.getEncoder().encodeToString(data));
       throw new UncheckedIOException(e);
     }
   };

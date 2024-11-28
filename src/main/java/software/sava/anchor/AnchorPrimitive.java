@@ -52,7 +52,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
             return Filter.createMemCompFilter(%s, _data);""", varName, varName, offsetVarName);
         case i8, u8 ->
             String.format("return Filter.createMemCompFilter(%s, new byte[]{(byte) 1, (byte) %s});", offsetVarName, varName);
-        case f32, f64, i16, u16, i32, u32, i64, u64, i128, u128, i256, u256 -> String.format("""
+        case f32, f64, i16, u16, i32, u32, i64, u64, usize, i128, u128, i256, u256 -> String.format("""
                 final byte[] _data = new byte[%d];
                 _data[0] = 1;
                 %s
@@ -81,7 +81,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
             return Filter.createMemCompFilter(%s, _data);""", varName, varName, offsetVarName);
         case i8, u8 ->
             String.format("return Filter.createMemCompFilter(%s, new byte[]{(byte) %s});", offsetVarName, varName);
-        case f32, f64, i16, u16, i32, u32, i64, u64, i128, u128, i256, u256 -> String.format("""
+        case f32, f64, i16, u16, i32, u32, i64, u64, usize, i128, u128, i256, u256 -> String.format("""
             final byte[] _data = new byte[%d];
             %s
             return Filter.createMemCompFilter(%s, _data);""", type.dataLength(), generateWrite(varName).replaceFirst("i", "0"), offsetVarName);
@@ -163,7 +163,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       case f64 -> genSrcContext.addStaticImport(ByteUtil.class, "getFloat64LE");
       case i16, u16 -> genSrcContext.addStaticImport(ByteUtil.class, "getInt16LE");
       case i32, u32 -> genSrcContext.addStaticImport(ByteUtil.class, "getInt32LE");
-      case i64, u64 -> genSrcContext.addStaticImport(ByteUtil.class, "getInt64LE");
+      case i64, u64, usize -> genSrcContext.addStaticImport(ByteUtil.class, "getInt64LE");
       case i128, u128 -> genSrcContext.addStaticImport(ByteUtil.class, "getInt128LE");
       case i256, u256 -> genSrcContext.addStaticImport(ByteUtil.class, "getInt256LE");
       case publicKey -> genSrcContext.addStaticImport(PublicKey.class, "readPubKey");
@@ -176,7 +176,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       case u8 -> String.format("_data[%s] & 0xFF", offsetVarName);
       case i16, u16 -> String.format("getInt16LE(_data, %s)", offsetVarName);
       case i32, u32 -> String.format("getInt32LE(_data, %s)", offsetVarName);
-      case i64, u64 -> String.format("getInt64LE(_data, %s)", offsetVarName);
+      case i64, u64, usize -> String.format("getInt64LE(_data, %s)", offsetVarName);
       case i128, u128 -> String.format("getInt128LE(_data, %s)", offsetVarName);
       case i256, u256 -> String.format("getInt256LE(_data, %s)", offsetVarName);
       case publicKey -> String.format("readPubKey(_data, %s)", offsetVarName);
@@ -231,7 +231,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       case i8, u8 -> "_data[i] = (byte) %s;";
       case i16, u16 -> "putInt16LE(_data, i, %s);";
       case i32, u32 -> "putInt32LE(_data, i, %s);";
-      case i64, u64 -> "putInt64LE(_data, i, %s);";
+      case i64, u64, usize -> "putInt64LE(_data, i, %s);";
       case i128, u128 -> "putInt128LE(_data, i, %s);";
       case i256, u256 -> "putInt256LE(_data, i, %s);";
       case publicKey -> "%s.write(_data, i);";
@@ -254,7 +254,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
         case f64 -> genSrcContext.addStaticImport(ByteUtil.class, "putFloat64LE");
         case i16, u16 -> genSrcContext.addStaticImport(ByteUtil.class, "putInt16LE");
         case i32, u32 -> genSrcContext.addStaticImport(ByteUtil.class, "putInt32LE");
-        case i64, u64 -> genSrcContext.addStaticImport(ByteUtil.class, "putInt64LE");
+        case i64, u64, usize -> genSrcContext.addStaticImport(ByteUtil.class, "putInt64LE");
         case i128, u128 -> genSrcContext.addStaticImport(ByteUtil.class, "putInt128LE");
         case i256, u256 -> genSrcContext.addStaticImport(ByteUtil.class, "putInt256LE");
       }
@@ -305,7 +305,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       case i8, u8 -> RustEnum.EnumInt8.class;
       case i16, u16 -> RustEnum.EnumInt16.class;
       case i32, u32 -> RustEnum.EnumInt32.class;
-      case i64, u64 -> RustEnum.EnumInt64.class;
+      case i64, u64, usize -> RustEnum.EnumInt64.class;
       case i128, u128 -> {
         genSrcContext.addImport(BigInteger.class);
         yield RustEnum.EnumInt128.class;
@@ -326,7 +326,7 @@ public record AnchorPrimitive(AnchorType type) implements AnchorReferenceTypeCon
       case f32 -> "(float val)";
       case f64 -> "(double val)";
       case i8, u8, i16, u16, i32, u32 -> "(int val)";
-      case i64, u64 -> "(long val)";
+      case i64, u64, usize -> "(long val)";
       case i128, u128, i256, u256 -> "(BigInteger val)";
       case publicKey -> "(PublicKey val)";
       case bytes -> "(byte[] val)";

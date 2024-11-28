@@ -7,7 +7,7 @@ import systems.comodal.jsoniter.factory.ElementFactory;
 
 import java.util.function.Supplier;
 
-import static software.sava.anchor.AnchorConstantType.TYPE_PARSER;
+import static software.sava.anchor.AnchorType.ANCHOR_TYPE_PARSER;
 import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 
 final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
@@ -15,7 +15,7 @@ final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
   static final Supplier<AnchorConstantParser> FACTORY = AnchorConstantParser::new;
 
   private String name;
-  private AnchorConstantType type;
+  private AnchorType type;
   private AnchorConstant value;
 
   AnchorConstantParser() {
@@ -36,7 +36,7 @@ final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
         ji.testObject(typeParser);
         this.type = typeParser.type;
       } else {
-        this.type = ji.applyChars(TYPE_PARSER);
+        this.type = ji.applyChars(ANCHOR_TYPE_PARSER);
       }
     } else if (fieldEquals("value", buf, offset, len)) {
       final var value = ji.readString();
@@ -50,14 +50,16 @@ final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
           }
           yield new AnchorBytesConstant(this.name, bytes);
         }
-        case i32 -> new AnchorIntConstant(this.name, Integer.parseInt(value.replaceAll("\\s+", "")));
+        case i8, i16, i32 -> new AnchorIntConstant(this.name, Integer.parseInt(value.replaceAll("\\s+", "")));
+        case i64 -> new AnchorLongConstant(this.name, Integer.parseInt(value.replaceAll("\\s+", "")));
         case string -> new AnchorStringConstant(this.name,
             value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"'
                 ? value.substring(1, value.length() - 1)
                 : value
         );
-        case u8, u16 -> new AnchorIntConstant(this.name, Integer.parseInt(value.replaceAll("_", "")));
+        case u8, u16, u32 -> new AnchorIntConstant(this.name, Integer.parseInt(value.replaceAll("_", "")));
         case u64, usize -> new AnchorLongConstant(this.name, Long.parseLong(value.replaceAll("_", "")));
+        default -> throw new UnsupportedOperationException("TODO: Support constants for type: " + this.type);
       };
     } else {
       ji.skip();
@@ -67,7 +69,7 @@ final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
 
   private static final class DefinedTypeParser implements FieldBufferPredicate {
 
-    private AnchorConstantType type;
+    private AnchorType type;
 
     private DefinedTypeParser() {
     }
@@ -75,7 +77,7 @@ final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
     @Override
     public boolean test(final char[] buf, final int offset, final int len, final JsonIterator ji) {
       if (fieldEquals("defined", buf, offset, len)) {
-        this.type = ji.applyChars(TYPE_PARSER);
+        this.type = ji.applyChars(ANCHOR_TYPE_PARSER);
       } else {
         throw new IllegalStateException("Unhandled AnchorConstantType field " + new String(buf, offset, len));
       }

@@ -37,6 +37,7 @@ public enum AnchorType {
   u16(short.class, int.class, OptionalInt.class, Short.BYTES),
   u32(int.class, OptionalInt.class, Integer.BYTES),
   u64(long.class, OptionalLong.class, Long.BYTES),
+  usize(long.class, OptionalLong.class, Long.BYTES),
   u128(BigInteger.class, Long.BYTES << 1),
   u256(BigInteger.class, Long.BYTES << 2),
   // u256(BigInteger.class, Long.BYTES << 2),
@@ -70,6 +71,7 @@ public enum AnchorType {
           case '2' -> u256;
           default -> throw throwUnsupportedType(buf, offset, len);
         };
+        case 5 -> usize;
         default -> throw throwUnsupportedType(buf, offset, len);
       };
     }
