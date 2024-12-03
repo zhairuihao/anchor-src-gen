@@ -1,7 +1,6 @@
 package software.sava.anchor;
 
-abstract sealed class BaseAnchorConstant implements AnchorConstant permits
-    AnchorBytesConstant, AnchorIntConstant, AnchorLongConstant, AnchorStringConstant {
+abstract sealed class BaseAnchorConstant implements AnchorConstant permits AnchorBigIntegerConstant, AnchorBytesConstant, AnchorIntConstant, AnchorLongConstant, AnchorStringConstant {
 
   protected final String name;
 

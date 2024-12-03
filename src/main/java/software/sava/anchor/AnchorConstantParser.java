@@ -59,6 +59,7 @@ final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
         );
         case u8, u16, u32 -> new AnchorIntConstant(this.name, Integer.parseInt(value.replaceAll("_", "")));
         case u64, usize -> new AnchorLongConstant(this.name, Long.parseLong(value.replaceAll("_", "")));
+        case i128, i256, u128, u256 -> new AnchorBigIntegerConstant(this.name, value.replaceAll("_", ""));
         default -> throw new UnsupportedOperationException("TODO: Support constants for type: " + this.type);
       };
     } else {
