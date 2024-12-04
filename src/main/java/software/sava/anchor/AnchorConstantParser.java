@@ -6,6 +6,7 @@ import systems.comodal.jsoniter.ValueType;
 import systems.comodal.jsoniter.factory.ElementFactory;
 
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 import static software.sava.anchor.AnchorType.ANCHOR_TYPE_PARSER;
 import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
@@ -13,6 +14,9 @@ import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
 
   static final Supplier<AnchorConstantParser> FACTORY = AnchorConstantParser::new;
+
+  private static final Pattern SPACE_PATTERN = Pattern.compile("\\s+");
+  private static final Pattern UNDERSCORE_PATTERN = Pattern.compile("_");
 
   private String name;
   private AnchorType type;
@@ -24,6 +28,10 @@ final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
   @Override
   public AnchorConstant create() {
     return value;
+  }
+
+  private static String removeAll(final Pattern pattern, final String constant) {
+    return pattern.matcher(constant).replaceAll("");
   }
 
   @Override
@@ -46,20 +54,20 @@ final class AnchorConstantParser implements ElementFactory<AnchorConstant> {
           final var parts = bracketsRemoved.split(",\\s+");
           final byte[] bytes = new byte[parts.length];
           for (int i = 0; i < bytes.length; ++i) {
-            bytes[i] = Byte.parseByte(parts[i]);
+            bytes[i] = (byte) Integer.parseInt(parts[i]);
           }
           yield new AnchorBytesConstant(this.name, bytes);
         }
-        case i8, i16, i32 -> new AnchorIntConstant(this.name, Integer.parseInt(value.replaceAll("\\s+", "")));
-        case i64 -> new AnchorLongConstant(this.name, Integer.parseInt(value.replaceAll("\\s+", "")));
         case string -> new AnchorStringConstant(this.name,
             value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"'
                 ? value.substring(1, value.length() - 1)
                 : value
         );
-        case u8, u16, u32 -> new AnchorIntConstant(this.name, Integer.parseInt(value.replaceAll("_", "")));
-        case u64, usize -> new AnchorLongConstant(this.name, Long.parseLong(value.replaceAll("_", "")));
-        case i128, i256, u128, u256 -> new AnchorBigIntegerConstant(this.name, value.replaceAll("_", ""));
+        case i8, i16, i32 -> new AnchorIntConstant(this.name, Integer.parseInt(removeAll(SPACE_PATTERN, value)));
+        case i64 -> new AnchorLongConstant(this.name, Long.parseLong(removeAll(SPACE_PATTERN, value)));
+        case u8, u16, u32 -> new AnchorIntConstant(this.name, Integer.parseInt(removeAll(UNDERSCORE_PATTERN, value)));
+        case u64, usize -> new AnchorLongConstant(this.name, Long.parseLong(removeAll(UNDERSCORE_PATTERN, value)));
+        case i128, i256, u128, u256 -> new AnchorBigIntegerConstant(this.name, removeAll(UNDERSCORE_PATTERN, value));
         default -> throw new UnsupportedOperationException("TODO: Support constants for type: " + this.type);
       };
     } else {

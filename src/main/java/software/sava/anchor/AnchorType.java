@@ -54,7 +54,11 @@ public enum AnchorType {
           case '6' -> i64;
           default -> throw throwUnsupportedType(buf, offset, len);
         };
-        case 4 -> i128;
+        case 4 -> switch (buf[offset + 1]) {
+          case '1' -> i128;
+          case '2' -> i256;
+          default -> throw throwUnsupportedType(buf, offset, len);
+        };
         default -> throw throwUnsupportedType(buf, offset, len);
       };
     } else if (c == 'u') {

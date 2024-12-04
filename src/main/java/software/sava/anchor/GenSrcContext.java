@@ -71,9 +71,9 @@ public record GenSrcContext(Set<String> accounts,
     addStaticImport(StandardCharsets.class, "US_ASCII");
   }
 
-  public void appendImports(final StringBuilder builder) {
+  public boolean appendImports(final StringBuilder builder) {
     if (imports.isEmpty() && staticImports.isEmpty()) {
-      return;
+      return false;
     }
 
     String group, currentGroup = null;
@@ -88,7 +88,7 @@ public record GenSrcContext(Set<String> accounts,
       builder.append("import ").append(importLine).append(";\n");
     }
     if (staticImports.isEmpty()) {
-      return;
+      return true;
     }
     currentGroup = null;
     builder.append('\n');
@@ -102,5 +102,6 @@ public record GenSrcContext(Set<String> accounts,
       }
       builder.append("import static ").append(importLine).append(";\n");
     }
+    return true;
   }
 }

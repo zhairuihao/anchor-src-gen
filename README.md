@@ -36,6 +36,8 @@ Leaf links provide concrete examples.
         * [Drift ExchangeStatus](https://github.com/sava-software/anchor-programs/blob/329056d611440fde45371aea7f5c95bf1bb465fb/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/ExchangeStatus.java)
     * With arbitrary associated data structures:
         * [Jupiter Swap](https://github.com/sava-software/anchor-programs/blob/329056d611440fde45371aea7f5c95bf1bb465fb/programs/src/main/java/software/sava/anchor/programs/jupiter/swap/anchor/types/Swap.java)
+- Constants:
+    * [Meteora CLMM](https://github.com/sava-software/anchor-programs/blob/ef8a67f9b724f2044c95497da6bfee9ad085117a/programs/src/main/java/software/sava/anchor/programs/meteora/dlmm/anchor/LbClmmConstants.java#L5)
 - Events:
     * [Drift NewUserRecord](https://github.com/sava-software/anchor-programs/blob/2715022ac3c6a72469ff817541e0f1c38cb942c3/programs/src/main/java/software/sava/anchor/programs/drift/anchor/types/NewUserRecord.java)
 - Errors:
@@ -56,11 +58,6 @@ implement solutions.
 * Event discriminators
 * Bytemuck serialization (previously only borsh)
 * Generics
-* Constants (WIP)
-
-#### Missed
-
-* 256 bit integers
 
 #### Ideas:
 

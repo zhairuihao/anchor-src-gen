@@ -53,7 +53,9 @@ public record AnchorIDL(PublicKey address,
 
     final var out = new StringBuilder(constantsBuilder.length() << 1);
     genSrcContext.appendPackage(out);
-    genSrcContext.appendImports(out);
+    if (genSrcContext.appendImports(out)) {
+      out.append('\n');
+    }
 
     final var className = genSrcContext.programName() + "Constants";
     out.append(String.format("""
@@ -252,19 +254,21 @@ public record AnchorIDL(PublicKey address,
         this.types = parseList(ji, AnchorNamedTypeParser.UPPER_FACTORY).stream()
             .collect(Collectors.toUnmodifiableMap(AnchorNamedType::name, Function.identity()));
       } else if (fieldEquals("events", buf, offset, len)) {
-        this.events = parseList(ji, AnchorNamedTypeParser.UPPER_FACTORY).stream()
-            .map(nt -> nt.type() instanceof AnchorTypeContextList(final List<AnchorNamedType> fields)
-                ? new AnchorNamedType(
+        this.events = parseList(ji, AnchorNamedTypeParser.UPPER_FACTORY).stream().map(nt -> {
+          if (nt.type() instanceof AnchorTypeContextList(final List<AnchorNamedType> fields)) {
+            return new AnchorNamedType(
                 null,
                 nt.name(),
                 AnchorSerialization.borsh,
                 null,
                 new AnchorStruct(fields),
                 nt.docs(),
-                nt.index())
-                : nt
-            )
-            .toList();
+                nt.index()
+            );
+          } else {
+            return nt;
+          }
+        }).toList();
       } else if (fieldEquals("errors", buf, offset, len)) {
         this.errors = parseList(ji, AnchorErrorParser.FACTORY);
       } else if (fieldEquals("metadata", buf, offset, len)) {
