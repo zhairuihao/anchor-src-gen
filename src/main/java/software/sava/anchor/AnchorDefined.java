@@ -8,19 +8,22 @@ import systems.comodal.jsoniter.ValueType;
 
 import java.util.Map;
 
+import static software.sava.anchor.AnchorNamedTypeParser.cleanName;
+import static software.sava.anchor.AnchorUtil.camelCase;
 import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 
 public record AnchorDefined(String typeName) implements AnchorReferenceTypeContext {
 
+
   static AnchorDefined parseDefined(final JsonIterator ji) {
     return ji.whatIsNext() == ValueType.STRING
-        ? new AnchorDefined(AnchorUtil.camelCase(ji.readString(), true))
+        ? new AnchorDefined(cleanName(ji.readString(), true))
         : ji.testObject(new Builder(), PARSER).create();
   }
 
   private static final ContextFieldBufferPredicate<Builder> PARSER = (builder, buf, offset, len, ji) -> {
     if (fieldEquals("name", buf, offset, len)) {
-      builder.name = AnchorUtil.camelCase(ji.readString(), true);
+      builder.name = cleanName(ji.readString(), true);
     } else {
       // https://github.com/coral-xyz/anchor/blob/020a3046582944030f17b6524006eeaf26951cb8/ts/packages/anchor/src/idl.ts#L255
       throw new IllegalStateException("Unhandled defined type field " + new String(buf, offset, len));
@@ -152,7 +155,7 @@ public record AnchorDefined(String typeName) implements AnchorReferenceTypeConte
             %sreturn Filter.createMemCompFilter(%s, %s.%s());
             }
             """,
-        AnchorUtil.camelCase(varName, true), typeName(), varName, genSrcContext.tab(), offsetVarName, varName, optional ? "writeOptional" : "write"
+        camelCase(varName, true), typeName(), varName, genSrcContext.tab(), offsetVarName, varName, optional ? "writeOptional" : "write"
     ));
     genSrcContext.addImport(Filter.class);
   }

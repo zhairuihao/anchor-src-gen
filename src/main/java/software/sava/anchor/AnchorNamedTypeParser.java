@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static software.sava.anchor.AnchorType.ANCHOR_TYPE_PARSER;
+import static software.sava.anchor.AnchorUtil.camelCase;
 import static systems.comodal.jsoniter.JsonIterator.fieldEquals;
 
 final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, CharBufferFunction<AnchorNamedType> {
@@ -59,6 +60,31 @@ final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, Ch
     return AnchorNamedType.createType(discriminator, name, serialization, representation, type, docs, index);
   }
 
+  static String cleanName(final String name, final boolean firstUpper) {
+    int nameSpace = name.indexOf(':');
+    if (nameSpace < 0) {
+      return camelCase(name, firstUpper);
+    } else {
+      // Convert to snake case, then camel case.
+      final char[] chars = new char[name.length()];
+      for (int srcBegin = 0, destBegin = 0; ; ) {
+        name.getChars(srcBegin, nameSpace, chars, destBegin);
+
+        destBegin += nameSpace - srcBegin;
+        chars[destBegin] = '_';
+        ++destBegin;
+
+        srcBegin = nameSpace + 2;
+        nameSpace = name.indexOf(':', srcBegin);
+        if (nameSpace < 0) {
+          nameSpace = chars.length;
+          name.getChars(srcBegin, nameSpace, chars, destBegin);
+          destBegin += nameSpace - srcBegin;
+          return camelCase(new String(chars, 0, destBegin), firstUpper);
+        }
+      }
+    }
+  }
 
   @Override
   public boolean test(final char[] buf, final int offset, final int len, final JsonIterator ji) {
@@ -75,7 +101,7 @@ final class AnchorNamedTypeParser implements ElementFactory<AnchorNamedType>, Ch
     } else if (fieldEquals("index", buf, offset, len)) {
       this.index = ji.readBoolean();
     } else if (fieldEquals("name", buf, offset, len)) {
-      this.name = AnchorUtil.camelCase(ji.readString(), firstUpper);
+      this.name = cleanName(ji.readString(), firstUpper);
       // System.out.println(name);
     } else if (fieldEquals("option", buf, offset, len)) {
       this.type = new AnchorOption(parseTypeContext(ji));
