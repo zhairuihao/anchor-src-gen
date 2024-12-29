@@ -1,7 +1,8 @@
 [
   {
-    "name": "Switchboard On-Demand",
-    "program": "SBondMDrcV3K4kxZR1HNVT7osZxAHVHgYXL5Ze1oMUv",
-    "package": "switchboard.on_demand"
+    "name": "keeper",
+    "program": "CMRY5juKJxp2hdYnyUQZ1d3cLEJYjUkqmHWRBvBvw1m1",
+    "package": "test.anchor",
+    "idlPath":"idl.json"
   }
 ]
