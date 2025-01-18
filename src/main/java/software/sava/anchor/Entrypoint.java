@@ -97,8 +97,11 @@ public final class Entrypoint extends Thread {
                 if (task == null) {
                     return;
                 }
-//        idl = task.fetchIDL(rpcClient);
-                idl = task.fetchIDL();
+                if (task.idlPath == null) {
+                    idl = task.fetchIDL(rpcClient);
+                } else {
+                    idl = task.fetchIDL();
+                }
                 if (idl == null) {
                     continue;
                 }
@@ -145,7 +148,7 @@ public final class Entrypoint extends Thread {
                                  String idlPath) {
 
         String formatPackage(final String basePackageName) {
-            return String.format("%s.%s.anchor", basePackageName, packageName);
+            return String.format("%s.%s", basePackageName, packageName);
         }
 
         AnchorIDL fetchIDL(final SolanaRpcClient rpcClient) {

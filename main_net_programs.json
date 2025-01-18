@@ -1,8 +1,26 @@
 [
   {
-    "name": "keeper",
-    "program": "CMRY5juKJxp2hdYnyUQZ1d3cLEJYjUkqmHWRBvBvw1m1",
-    "package": "test.anchor",
-    "idlPath":"idl.json"
+    "name": "bumpin-keeper",
+    "program": "HDwcJBJXjL9FpJ7UBsYBtaDjsBUhuLCUYoz3zr8SWWaQ",
+    "package": "anchor",
+    "idlPath":"keeper.json"
+  },
+  {
+    "name": "wormhole",
+    "program": "HDwcJBJXjL9FpJ7UBsYBtaDjsBUhuLCUYoz3zr8SWWaQ",
+    "package": "wormhole.anchor",
+    "idlPath":"6cMFuNNdxnBR7rHRkydNnDvyYmQMXinG74Z9digvbhgH_idl.json"
+  },
+  {
+    "name": "pyth-rec",
+    "program": "rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ",
+    "package": "pyth.rec.anchor",
+    "idlPath": "68r7YcKwR5n8sV3Ngnt7Du28BabWNjZWMFQkkwSeg2A3_idl.json"
+  },
+  {
+    "name": "shadow-storm",
+    "program": "rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ",
+    "package": "shadow.storm.anchor",
+    "idlPath": "shadow_storm.json"
   }
 ]

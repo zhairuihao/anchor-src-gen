@@ -79,6 +79,20 @@ Replace the values below to fit your needs.
  --numThreads=5 \
  --screen=[0|1]
 ```
+local use
+
+```bash
+./genSrc.sh \
+ --tabLength=2 \
+ --sourceDirectory="src/main/java" \
+ --moduleName="com.bumpin.trade.common" \
+ --basePackageName="com.bumpin.trade.common" \
+ --programs="./main_net_programs.json" \
+ --rpc="https://api.mainnet-beta.solana.com" \
+ --baseDelayMillis=200 \
+ --numThreads=5 \
+ --screen=0
+```
 
 ## Requirements
 
@@ -121,6 +135,7 @@ dependencies {
   implementation "software.sava:sava-rpc:$VERSION"
   implementation "software.sava:solana-programs:$VERSION"
   implementation "software.sava:anchor-src-gen:$VERSION"
+    
 }
 ```
 
