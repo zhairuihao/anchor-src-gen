@@ -22,5 +22,11 @@
     "program": "rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ",
     "package": "shadow.storm.anchor",
     "idlPath": "shadow_storm.json"
+  },
+  {
+    "name": "dex_solana",
+    "program": "rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ",
+    "package": "dex.solana.anchor",
+    "idlPath": "dex_solana.json"
   }
 ]

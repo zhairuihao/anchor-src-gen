@@ -1,5 +1,5 @@
 {
-  "address": "CMRY5juKJxp2hdYnyUQZ1d3cLEJYjUkqmHWRBvBvw1m1",
+  "address": "94bfdkcc7cBfucpWKQb9X1ftQFfvLp7eXo2iLRemd89Q",
   "metadata": {
     "name": "bumpin_trade",
     "version": "0.1.0",
@@ -184,6 +184,7 @@
         },
         {
           "name": "trade_token",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -450,6 +451,7 @@
         },
         {
           "name": "trade_token",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -2914,6 +2916,85 @@
       ]
     },
     {
+      "name": "modify_user_referral",
+      "discriminator": [
+        113,
+        166,
+        174,
+        145,
+        233,
+        153,
+        129,
+        79
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  109,
+                  112,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "_user_authority_key"
+              }
+            ]
+          }
+        },
+        {
+          "name": "keeper_key",
+          "signer": true,
+          "relations": [
+            "state"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "_user_authority_key",
+          "type": "pubkey"
+        },
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "ModifyUserReferralParams"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "modify_user_status",
       "discriminator": [
         245,
@@ -4545,6 +4626,32 @@
       ]
     },
     {
+      "name": "AutoReBalanceFeeEvent",
+      "discriminator": [
+        245,
+        195,
+        150,
+        202,
+        94,
+        107,
+        210,
+        167
+      ]
+    },
+    {
+      "name": "CollectEvent",
+      "discriminator": [
+        138,
+        16,
+        76,
+        55,
+        167,
+        75,
+        242,
+        47
+      ]
+    },
+    {
       "name": "DepositEvent",
       "discriminator": [
         120,
@@ -4584,6 +4691,19 @@
       ]
     },
     {
+      "name": "LstEvent",
+      "discriminator": [
+        227,
+        219,
+        33,
+        207,
+        12,
+        59,
+        34,
+        31
+      ]
+    },
+    {
       "name": "PoolUpdateEvent",
       "discriminator": [
         124,
@@ -4594,6 +4714,19 @@
         225,
         61,
         254
+      ]
+    },
+    {
+      "name": "UpdatePositionFeeEvent",
+      "discriminator": [
+        5,
+        176,
+        234,
+        67,
+        252,
+        27,
+        174,
+        23
       ]
     },
     {
@@ -4652,31 +4785,551 @@
   "errors": [
     {
       "code": 6000,
+      "name": "AmountNotEnough",
+      "msg": "AmountNotEnough"
+    },
+    {
+      "code": 6001,
+      "name": "MaximumPositionCountReached",
+      "msg": "MaximumPositionCountReached"
+    },
+    {
+      "code": 6002,
+      "name": "MintNotFound",
+      "msg": "MintNotFound"
+    },
+    {
+      "code": 6003,
+      "name": "WithdrawAmountNotEnough",
+      "msg": "WithdrawAmountNotEnough"
+    },
+    {
+      "code": 6004,
+      "name": "AddInitialMarginNotEnough",
+      "msg": "AddInitialMarginNotEnough"
+    },
+    {
+      "code": 6005,
+      "name": "SubTradeTokenTotalAmountNotEnough",
+      "msg": "SubTradeTokenTotalAmountNotEnough"
+    },
+    {
+      "code": 6006,
+      "name": "SubTradeTokenLiabilityAmountNotEnough",
+      "msg": "SubTradeTokenLiabilityAmountNotEnough"
+    },
+    {
+      "code": 6007,
+      "name": "ReduceMarginTooBig",
+      "msg": "ReduceMarginTooBig"
+    },
+    {
+      "code": 6008,
+      "name": "UserAvailableValueNotEnough",
+      "msg": "UserAvailableValueNotEnough"
+    },
+    {
+      "code": 6009,
+      "name": "SubUserAmountNotEnough",
+      "msg": "SubUserAmountNotEnough"
+    },
+    {
+      "code": 6010,
+      "name": "SubUserUsedAmountNotEnough",
+      "msg": "SubUserUsedAmountNotEnough"
+    },
+    {
+      "code": 6011,
+      "name": "SubHoldPoolBiggerThanHold",
+      "msg": "SubHoldPoolBiggerThanHold"
+    },
+    {
+      "code": 6012,
+      "name": "SubPoolStableAmountBiggerThanStableAmount",
+      "msg": "SubPoolStableAmountBiggerThanStableAmount"
+    },
+    {
+      "code": 6013,
+      "name": "SubPoolAmountBiggerThanAmount",
+      "msg": "SubPoolAmountBiggerThanAmount"
+    },
+    {
+      "code": 6014,
+      "name": "PositionShouldBeLiquidation",
+      "msg": "PositionShouldBeLiquidation"
+    },
+    {
+      "code": 6015,
+      "name": "OrderHoldUsdSmallThanHoldUsd",
+      "msg": "OrderHoldUsdSmallThanHoldUsd"
+    },
+    {
+      "code": 6016,
+      "name": "StandardPoolValueNotEnough",
+      "msg": "StandardPoolValueNotEnough"
+    },
+    {
+      "code": 6017,
+      "name": "OrderMarginUSDTooSmall",
+      "msg": "OrderMarginUSDTooSmall"
+    },
+    {
+      "code": 6018,
+      "name": "PoolAvailableLiquidityNotEnough",
+      "msg": "PoolAvailableLiquidityNotEnough"
+    },
+    {
+      "code": 6019,
+      "name": "InvalidTransfer",
+      "msg": "Invalid transfer"
+    },
+    {
+      "code": 6020,
+      "name": "InvalidParam",
+      "msg": "InvalidParam"
+    },
+    {
+      "code": 6021,
+      "name": "OnlyOneTypeOrderAllowed",
+      "msg": "OnlyOneTypeOrderAllowed"
+    },
+    {
+      "code": 6022,
+      "name": "CurrentMarketPositionAgainstOrder",
+      "msg": "CurrentMarketPositionAgainstOrder"
+    },
+    {
+      "code": 6023,
+      "name": "CurrentMarketOrderAgainstOrder",
+      "msg": "CurrentMarketOrderAgainstOrder"
+    },
+    {
+      "code": 6024,
+      "name": "OrderNotExist",
+      "msg": "OrderNotExist"
+    },
+    {
+      "code": 6025,
+      "name": "TokenNotMatch",
+      "msg": "TokenNotMatch"
+    },
+    {
+      "code": 6026,
+      "name": "NoMoreUserTokenSpace",
+      "msg": "NoMoreUserTokenSpace"
+    },
+    {
+      "code": 6027,
+      "name": "NoMoreOrderSpace",
+      "msg": "NoMoreOrderSpace"
+    },
+    {
+      "code": 6028,
+      "name": "LeverageIsNotAllowed",
+      "msg": "LeverageIsNotAllowed"
+    },
+    {
+      "code": 6029,
+      "name": "PriceIsNotAllowed",
+      "msg": "PriceIsNotAllowed"
+    },
+    {
+      "code": 6030,
+      "name": "LiquidationErrorWithBankruptcyPriceZero",
+      "msg": "LiquidationErrorWithBankruptcyPriceZero"
+    },
+    {
+      "code": 6031,
+      "name": "OnlyOneDirectionPositionIsAllowed",
+      "msg": "OnlyOneDirectionPositionIsAllowed"
+    },
+    {
+      "code": 6032,
+      "name": "BalanceNotEnough",
+      "msg": "BalanceNotEnough"
+    },
+    {
+      "code": 6033,
+      "name": "PythOffline",
+      "msg": "PythOffline"
+    },
+    {
+      "code": 6034,
+      "name": "ShadowStormOffline",
+      "msg": "ShadowStormOffline"
+    },
+    {
+      "code": 6035,
+      "name": "Overflow",
+      "msg": "Overflow"
+    },
+    {
+      "code": 6036,
+      "name": "TransferFailed",
+      "msg": "TransferFailed"
+    },
+    {
+      "code": 6037,
+      "name": "UnableToLoadAccountLoader",
+      "msg": "Unable to load AccountLoader"
+    },
+    {
+      "code": 6038,
+      "name": "CantPayUserInitFee",
+      "msg": "CantPayUserInitFee"
+    },
+    {
+      "code": 6039,
+      "name": "CouldNotFindUserToken",
+      "msg": "CouldNotFindUserToken"
+    },
+    {
+      "code": 6040,
+      "name": "UserTokenAccountNotMatched",
+      "msg": "UserTokenAccountNotMatched"
+    },
+    {
+      "code": 6041,
+      "name": "CouldNotFindUserOrder",
+      "msg": "CouldNotFindUserOrder"
+    },
+    {
+      "code": 6042,
+      "name": "CouldNotFindUserPosition",
+      "msg": "CouldNotFindUserPosition"
+    },
+    {
+      "code": 6043,
+      "name": "LiquidatePositionIgnore",
+      "msg": "LiquidatePositionIgnore"
+    },
+    {
+      "code": 6044,
+      "name": "OnlyCrossPositionAllowed",
+      "msg": "OnlyCrossPositionAllowed"
+    },
+    {
+      "code": 6045,
+      "name": "OnlyCrossOrderAllowed",
+      "msg": "OnlyCrossOrderAllowed"
+    },
+    {
+      "code": 6046,
+      "name": "OnlyIsolateOrderAllowed",
+      "msg": "OnlyIsolateOrderAllowed"
+    },
+    {
+      "code": 6047,
+      "name": "OnlyIsolatePositionAllowed",
+      "msg": "OnlyIsolatePositionAllowed"
+    },
+    {
+      "code": 6048,
+      "name": "CouldNotFindUserStake",
+      "msg": "CouldNotFindUserStake"
+    },
+    {
+      "code": 6049,
+      "name": "UserShouldInLiquidation",
+      "msg": "UserShouldInLiquidation"
+    },
+    {
+      "code": 6050,
+      "name": "UserStakeHasNoMoreClaim",
+      "msg": "UserStakeHasNoMoreClaim"
+    },
+    {
+      "code": 6051,
+      "name": "OracleNotFound",
+      "msg": "OracleNotFound"
+    },
+    {
+      "code": 6052,
+      "name": "OraclePriceToOld",
+      "msg": "OraclePriceToOld"
+    },
+    {
+      "code": 6053,
+      "name": "UnableToLoadOracle",
+      "msg": "Unable To Load Oracles"
+    },
+    {
+      "code": 6054,
+      "name": "InvalidOracle",
+      "msg": "InvalidOracle"
+    },
+    {
+      "code": 6055,
+      "name": "BnConversionError",
+      "msg": "Conversion to u128/u128 failed with an overflow or underflow"
+    },
+    {
+      "code": 6056,
+      "name": "MathError",
+      "msg": "Math Error"
+    },
+    {
+      "code": 6057,
+      "name": "CastingFailure",
+      "msg": "Casting Failure"
+    },
+    {
+      "code": 6058,
+      "name": "CouldNotLoadMarketData",
+      "msg": "CouldNotLoadMarketData"
+    },
+    {
+      "code": 6059,
+      "name": "CouldNotFindMarket",
+      "msg": "CouldNotFindMarket"
+    },
+    {
+      "code": 6060,
+      "name": "InvalidMarketAccount",
+      "msg": "InvalidMarketAccount"
+    },
+    {
+      "code": 6061,
+      "name": "InvalidPriceUpdateV2Account",
+      "msg": "InvalidPriceUpdateV2Account"
+    },
+    {
+      "code": 6062,
+      "name": "MarketWrongMutability",
+      "msg": "MarketWrongMutability"
+    },
+    {
+      "code": 6063,
+      "name": "MarketNumberNotEqual2Pool",
+      "msg": "MarketNumberNotEqual2Pool"
+    },
+    {
+      "code": 6064,
+      "name": "FailedUnwrap",
+      "msg": "Failed Unwrap"
+    },
+    {
+      "code": 6065,
+      "name": "UserNotEnoughValue",
+      "msg": "User Not Enough Value"
+    },
+    {
+      "code": 6066,
+      "name": "AmountZero",
+      "msg": "AmountZero"
+    },
+    {
+      "code": 6067,
+      "name": "CouldNotLoadTokenAccountData",
+      "msg": "CouldNotLoadTokenAccountData"
+    },
+    {
+      "code": 6068,
+      "name": "CouldNotLoadTradeTokenData",
+      "msg": "CouldNotLoadTradeTokenData"
+    },
+    {
+      "code": 6069,
+      "name": "CouldNotLoadPoolData",
+      "msg": "CouldNotLoadPoolData"
+    },
+    {
+      "code": 6070,
+      "name": "CouldNotLoadLstPrice",
+      "msg": "CouldNotLoadLstPrice"
+    },
+    {
+      "code": 6071,
+      "name": "InvalidTradeTokenAccount",
+      "msg": "InvalidTradeTokenAccount"
+    },
+    {
+      "code": 6072,
+      "name": "InvalidTokenAccount",
+      "msg": "InvalidTokenAccount"
+    },
+    {
+      "code": 6073,
+      "name": "InvalidPoolAccount",
+      "msg": "InvalidPoolAccount"
+    },
+    {
+      "code": 6074,
+      "name": "TradeTokenNotFind",
+      "msg": "CanNotFindTradeToken"
+    },
+    {
+      "code": 6075,
+      "name": "VaultNotFind",
+      "msg": "CanNotFindVault"
+    },
+    {
+      "code": 6076,
+      "name": "MarketNotFind",
+      "msg": "CanNotFindMarket"
+    },
+    {
+      "code": 6077,
+      "name": "MarketNotAvailable",
+      "msg": "MarketNotAvailable"
+    },
+    {
+      "code": 6078,
+      "name": "MarketIsReduceOnly",
+      "msg": "MarketIsReduceOnly"
+    },
+    {
+      "code": 6079,
+      "name": "MarketIsPaused",
+      "msg": "MarketIsPaused"
+    },
+    {
+      "code": 6080,
+      "name": "MarketMaxLongInterestReached",
+      "msg": "MarketMaxLongInterestReached"
+    },
+    {
+      "code": 6081,
+      "name": "MarketMaxShortInterestReached",
+      "msg": "MarketMaxShortInterestReached"
+    },
+    {
+      "code": 6082,
+      "name": "MarketLongShortRatioReached",
+      "msg": "MarketLongShortRatioReached"
+    },
+    {
+      "code": 6083,
+      "name": "StakePaused",
+      "msg": "StakePaused"
+    },
+    {
+      "code": 6084,
+      "name": "StakeNotSupport",
+      "msg": "StakeNotSupport"
+    },
+    {
+      "code": 6085,
+      "name": "UnStakeNotSupport",
+      "msg": "UnStakeNotSupport"
+    },
+    {
+      "code": 6086,
+      "name": "StakeToSmall",
+      "msg": "StakeToSmall"
+    },
+    {
+      "code": 6087,
+      "name": "UnStakeTooSmall",
+      "msg": "UnStakeTooSmall"
+    },
+    {
+      "code": 6088,
+      "name": "UnStakeWithAmountNotEnough",
+      "msg": "UnStakeWithAmountNotEnough"
+    },
+    {
+      "code": 6089,
+      "name": "UnStakeTooLarge",
+      "msg": "UnStakeTooLarge"
+    },
+    {
+      "code": 6090,
+      "name": "PositionSideNotSupport",
+      "msg": "PositionSideNotSupport"
+    },
+    {
+      "code": 6091,
+      "name": "RewardsNotFound",
+      "msg": "RewardsNotFound"
+    },
+    {
+      "code": 6092,
+      "name": "CouldNotLoadRewards",
+      "msg": "CouldNotLoadRewards"
+    },
+    {
+      "code": 6093,
+      "name": "UserNotFound",
+      "msg": "UserNotFound"
+    },
+    {
+      "code": 6094,
+      "name": "CouldNotLoadUserData",
+      "msg": "CouldNotLoadUserData"
+    },
+    {
+      "code": 6095,
+      "name": "PoolSubUnsettleNotEnough",
+      "msg": "PoolSubUnsettleNotEnough"
+    },
+    {
+      "code": 6096,
+      "name": "PoolUnsettleSmallThanTokenLiability",
+      "msg": "PoolUnsettleSmallThanTokenLiability"
+    },
+    {
+      "code": 6097,
+      "name": "TimestampNotFound",
+      "msg": "TimestampNotFound"
+    },
+    {
+      "code": 6098,
+      "name": "ClaimUnqualified",
+      "msg": "ClaimUnqualified"
+    },
+    {
+      "code": 6099,
+      "name": "PoolMintSupplyIsZero",
+      "msg": "PoolMintSupplyIsZero"
+    },
+    {
+      "code": 6100,
+      "name": "RebalancedMarketStableLossIgnore",
+      "msg": "RebalancedMarketStableLossIgnore"
+    },
+    {
+      "code": 6101,
+      "name": "TradingSwitcherIsOff",
+      "msg": "TradingSwitcherIsOff"
+    },
+    {
+      "code": 6102,
+      "name": "StakingSwitcherIsOff",
+      "msg": "StakingSwitcherIsOff"
+    },
+    {
+      "code": 6103,
+      "name": "DepositSwitcherIsOff",
+      "msg": "DepositSwitcherIsOff"
+    },
+    {
+      "code": 6104,
       "name": "InvalidOwner",
       "msg": "InvalidOwner"
     },
     {
-      "code": 6001,
+      "code": 6105,
       "name": "DataLenNotMatch",
       "msg": "DataLenNotMatch"
     },
     {
-      "code": 6002,
+      "code": 6106,
       "name": "DeserializeError",
       "msg": "DeserializeError"
     },
     {
-      "code": 6003,
+      "code": 6107,
       "name": "DataBorrowError",
       "msg": "DataBorrowError"
     },
     {
-      "code": 6004,
+      "code": 6108,
       "name": "PriceTooOld",
       "msg": "PriceTooOld"
     },
     {
-      "code": 6005,
+      "code": 6109,
       "name": "TokenMintNotMatch",
       "msg": "TokenMintNotMatch"
     }
@@ -4811,6 +5464,34 @@
       }
     },
     {
+      "name": "AutoReBalanceFeeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fee_reward_settle_amount",
+            "type": "u128"
+          },
+          {
+            "name": "referrer_fee_reward_settle_amount",
+            "type": "u128"
+          },
+          {
+            "name": "pool_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_mint_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "time",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
       "name": "BorrowingFee",
       "repr": {
         "kind": "c"
@@ -4858,6 +5539,42 @@
           {
             "name": "order_id",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CollectEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_mint_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_fee_amount",
+            "type": "u128"
+          },
+          {
+            "name": "pool_share_amount",
+            "type": "u128"
+          },
+          {
+            "name": "referral_share_amount",
+            "type": "u128"
+          },
+          {
+            "name": "dao_share_amount",
+            "type": "u128"
+          },
+          {
+            "name": "time",
+            "type": "i64"
           }
         ]
       }
@@ -5364,6 +6081,42 @@
           {
             "name": "amount",
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LstEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_mint_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "stake_amount",
+            "type": "u128"
+          },
+          {
+            "name": "fee_amount",
+            "type": "u128"
+          },
+          {
+            "name": "is_stake",
+            "type": "bool"
+          },
+          {
+            "name": "time",
+            "type": "i64"
           }
         ]
       }
@@ -5973,6 +6726,18 @@
             "type": {
               "option": "u32"
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ModifyUserReferralParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "referral",
+            "type": "bool"
           }
         ]
       }
@@ -6770,6 +7535,62 @@
           {
             "name": "pool_index",
             "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdatePositionFeeEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_reward",
+            "type": {
+              "defined": {
+                "name": "FeeReward"
+              }
+            }
+          },
+          {
+            "name": "referrer_fee_reward",
+            "type": {
+              "defined": {
+                "name": "FeeReward"
+              }
+            }
+          },
+          {
+            "name": "order_id",
+            "type": "u64"
+          },
+          {
+            "name": "original_fee_amount",
+            "type": "u128"
+          },
+          {
+            "name": "market_mint_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_mint_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_increase",
+            "type": "bool"
+          },
+          {
+            "name": "time",
+            "type": "i64"
           }
         ]
       }

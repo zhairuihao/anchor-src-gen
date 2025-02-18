@@ -80,7 +80,6 @@ Replace the values below to fit your needs.
  --screen=[0|1]
 ```
 local use
-
 ```bash
 ./genSrc.sh \
  --tabLength=2 \
